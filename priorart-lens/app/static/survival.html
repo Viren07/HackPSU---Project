@@ -1,0 +1,318 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PriorArt Lens</title>
+<style>
+  :root {
+    --bg: #f5f4ef; --panel: #ffffff; --ink: #1a1c21; --muted: #676b74; --line: #e2e0d8;
+    --accent: #1f4e9c; --accent2: #d1495b; --good: #1f8a4c; --warn: #a96500; --bad: #c62828; --soft: #eef2f9;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #111317; --panel: #1a1d23; --ink: #ecebe6; --muted: #9ba0aa; --line: #2b2f37;
+            --accent: #7fa7ec; --accent2: #f07a8a; --good: #4cc38a; --warn: #f0b04a; --bad: #ef6b6b; --soft: #1f2633; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink);
+         font: 15px/1.5 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; }
+  .wrap { max-width: 1120px; margin: 0 auto; padding: 0 16px; }
+  header { padding: 22px 0 6px; }
+  h1 { margin: 0; font-size: 23px; letter-spacing: -0.01em; }
+  h1 span { color: var(--accent2); }
+  .tag { color: var(--muted); margin: 2px 0 0; max-width: 720px; }
+  .steps { display: flex; gap: 8px; flex-wrap: wrap; margin: 14px 0 4px; }
+  .pill { font-size: 12px; padding: 4px 10px; border-radius: 99px; background: var(--soft); color: var(--muted); }
+  .pill.on { background: var(--accent); color: #fff; }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 16px; margin: 14px 0; min-width: 0; }
+  .card h2 { margin: 0 0 10px; font-size: 13px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+  .row { display: flex; gap: 12px; flex-wrap: wrap; align-items: end; }
+  label.f { display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: var(--muted); }
+  input[type=text], input[type=number] { font: inherit; color: var(--ink); background: var(--bg); border: 1px solid var(--line);
+                                         border-radius: 8px; padding: 8px 10px; min-width: 0; }
+  .btn { appearance: none; border: 0; border-radius: 10px; padding: 11px 16px; font: inherit; font-weight: 600;
+         background: var(--accent); color: #fff; cursor: pointer; }
+  .btn.alt { background: var(--accent2); }
+  .btn.ghost { background: transparent; color: var(--ink); border: 1px solid var(--line); }
+  .btn:disabled { opacity: .5; cursor: default; }
+  .muted { color: var(--muted); }
+  .small { font-size: 13px; }
+  .grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 14px; }
+  img.fig { width: 100%; border-radius: 8px; display: block; background: #fff; }
+  .hidden { display: none !important; }
+  #status { min-height: 1.5em; color: var(--muted); margin: 6px 2px; }
+  .warnbox { background: color-mix(in srgb, var(--warn) 14%, transparent); border-radius: 10px; padding: 9px 12px; margin: 8px 0; font-size: 14px; }
+  .arm { border: 1px solid var(--line); border-radius: 12px; padding: 12px; margin: 10px 0; }
+  .arm-head { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  .swatch { width: 14px; height: 14px; border-radius: 4px; flex: none; }
+  .risk { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
+  .risk div { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+  .risk span { font-size: 11px; color: var(--muted); }
+  .risk input { width: 64px; text-align: center; }
+  .big { font-size: 38px; font-weight: 700; line-height: 1.05; letter-spacing: -0.02em; }
+  .kv { display: grid; grid-template-columns: auto 1fr; gap: 4px 14px; font-size: 14px; margin-top: 10px; }
+  .kv b { font-weight: 600; }
+  .good { color: var(--good); } .warn { color: var(--warn); } .bad { color: var(--bad); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; font-variant-numeric: tabular-nums; }
+  th, td { padding: 7px 6px; border-bottom: 1px solid var(--line); text-align: left; }
+  td.num, th.num { text-align: right; }
+  .verdict { font-size: 18px; line-height: 1.45; margin: 4px 0 10px; }
+  .tablewrap { overflow-x: auto; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>PriorArt <span>Lens</span></h1>
+    <p class="tag">Cancer trials publish survival curves, not patient data. Photograph the curves, rebuild the patients,
+      check the result against the paper, and pool trials into a meta-analysis.</p>
+    <div class="steps">
+      <span class="pill on" id="p1">1 · Read figure</span>
+      <span class="pill" id="p2">2 · Check numbers</span>
+      <span class="pill" id="p3">3 · Rebuild patients</span>
+      <span class="pill" id="p4">4 · Pool trials</span>
+    </div>
+  </header>
+
+  <!-- 1. add a trial -->
+  <section class="card">
+    <h2>Add a trial</h2>
+    <div class="row">
+      <label class="f" style="flex:1 1 220px">Trial name
+        <input type="text" id="trialName" placeholder="e.g. KEYNOTE-042"></label>
+      <label class="f" style="flex:0 1 170px">Hazard ratio reported in paper (optional)
+        <input type="number" id="pubHr" step="0.01" min="0" placeholder="e.g. 0.81"></label>
+      <input id="file" type="file" accept="image/*" capture="environment" class="hidden">
+      <button class="btn" id="snap">Photo or upload of survival figure</button>
+    </div>
+    <label class="small muted" style="display:flex;gap:6px;margin-top:10px">
+      <input type="checkbox" id="rectify" checked> Straighten photo (turn off for screenshots and PDF crops)</label>
+    <div id="status"></div>
+  </section>
+
+  <!-- 2. review extracted numbers -->
+  <section class="card hidden" id="review">
+    <h2>Check what we read</h2>
+    <div class="grid2">
+      <div><img class="fig" id="overlay" alt="Figure with the traced curves drawn on top"></div>
+      <div>
+        <div id="readWarnings"></div>
+        <p class="small muted" style="margin-top:0">Numbers at risk come from the table under the figure. Fix any
+          misread number, then pick which arm is the new treatment.</p>
+        <div id="arms"></div>
+        <button class="btn" id="rebuild">Rebuild patients &amp; compute hazard ratio</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3. result -->
+  <section class="card hidden" id="result">
+    <h2>Rebuilt trial</h2>
+    <div class="grid2">
+      <div>
+        <div class="muted small" id="hrLabel"></div>
+        <div class="big" id="hrBig"></div>
+        <div class="muted" id="hrCi"></div>
+        <div id="pubCompare" style="margin-top:10px"></div>
+        <div class="kv" id="checks"></div>
+        <div style="margin-top:14px" class="row">
+          <button class="btn alt" id="addTrial">Add to meta-analysis</button>
+        </div>
+      </div>
+      <div><img class="fig" id="rebuiltImg" alt="Survival curves rebuilt from reconstructed patients"></div>
+    </div>
+  </section>
+
+  <!-- 4. meta-analysis -->
+  <section class="card">
+    <h2>Meta-analysis</h2>
+    <div class="tablewrap"><table id="trialTable"></table></div>
+    <details style="margin:10px 0">
+      <summary class="small muted" style="cursor:pointer">Add a trial by its reported hazard ratio instead</summary>
+      <div class="row" style="margin-top:10px">
+        <label class="f" style="flex:1 1 160px">Name <input type="text" id="mName"></label>
+        <label class="f" style="flex:0 1 100px">HR <input type="number" id="mHr" step="0.01"></label>
+        <label class="f" style="flex:0 1 100px">95% CI low <input type="number" id="mLo" step="0.01"></label>
+        <label class="f" style="flex:0 1 100px">95% CI high <input type="number" id="mHi" step="0.01"></label>
+        <button class="btn ghost" id="mAdd">Add</button>
+      </div>
+    </details>
+    <div class="row">
+      <button class="btn" id="poolBtn">Pool trials</button>
+      <button class="btn ghost" id="clearBtn">Clear all</button>
+    </div>
+    <div id="poolOut" class="hidden" style="margin-top:14px">
+      <p class="verdict" id="verdict"></p>
+      <img class="fig" style="max-width:900px;margin:0 auto" id="forest" alt="Forest plot of all trials and the pooled estimate">
+    </div>
+  </section>
+  <p class="small muted" style="margin:24px 0">Reconstruction: Guyot et al. 2012 (BMC Med Res Methodol 12:9). Pooling: DerSimonian-Laird random effects.
+    Reconstructed data approximates, not replaces, the original patient data. <a href="/chart" style="color:inherit">General chart reader</a></p>
+</div>
+<script>
+const $ = (id) => document.getElementById(id);
+let current = null;   // read result
+let analysis = null;  // analyze result
+let trials = [];
+try { trials = JSON.parse(localStorage.getItem("pal_trials") || "[]"); } catch (e) { trials = []; }
+const save = () => { try { localStorage.setItem("pal_trials", JSON.stringify(trials)); } catch (e) {} };
+const rgb = (c) => `rgb(${c[0]},${c[1]},${c[2]})`;
+const f2 = (v) => (v == null ? "n/a" : (+v).toFixed(2));
+const step = (n) => ["p1", "p2", "p3", "p4"].forEach((p, i) => $(p).classList.toggle("on", i < n));
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;"}[c]));
+
+$("snap").onclick = () => $("file").click();
+$("file").onchange = async (e) => {
+  const f = e.target.files[0];
+  if (!f) return;
+  const fd = new FormData();
+  fd.append("image", f);
+  fd.append("rectify", $("rectify").checked);
+  $("status").textContent = "Reading curves and the number-at-risk table...";
+  $("snap").disabled = true;
+  $("result").classList.add("hidden");
+  try {
+    const r = await fetch("/api/km/read", { method: "POST", body: fd });
+    const d = await r.json();
+    if (!d.ok) { $("status").textContent = d.error || "Could not read this figure."; return; }
+    current = d;
+    renderReview();
+    $("status").textContent = "";
+    step(2);
+  } catch (err) {
+    $("status").textContent = "Could not reach the server: " + err;
+  } finally { $("snap").disabled = false; $("file").value = ""; }
+};
+
+function renderReview() {
+  $("review").classList.remove("hidden");
+  $("overlay").src = "data:image/png;base64," + current.overlay_png;
+  $("readWarnings").innerHTML = (current.warnings || []).map(w => `<div class="warnbox">${esc(w)}</div>`).join("");
+  // build a shared time grid from the x ticks so a missed count can be filled in
+  const ticks = current.axis.x_ticks.slice().sort((a, b) => a - b);
+  const stepT = ticks.length > 1 ? ticks[1] - ticks[0] : 0;
+  const grid = [];
+  if (stepT > 0) for (let t = 0; t <= current.axis.x_max + 1e-6; t += stepT) grid.push(+t.toFixed(4));
+  current.arms.forEach(a => {
+    const all = new Set([...grid, ...a.t_risk]);
+    a._grid = [...all].sort((x, y) => x - y);
+  });
+  $("arms").innerHTML = current.arms.map((a, i) => `
+    <div class="arm">
+      <div class="arm-head">
+        <span class="swatch" style="background:${rgb(a.color)}"></span>
+        <input type="text" value="${esc(a.name)}" data-arm="${i}" class="armName" style="flex:1 1 160px">
+        <label class="small"><input type="radio" name="treat" value="${i}" ${i === current.treatment_index ? "checked" : ""}> new treatment</label>
+      </div>
+      <div class="risk">${a._grid.map(t => {
+        const k = a.t_risk.findIndex(x => Math.abs(x - t) < 1e-6);
+        const v = k >= 0 ? a.n_risk[k] : "";
+        return `<div><span>t=${+t.toFixed(2)}</span><input type="number" min="0" data-arm="${i}" data-t="${t}" value="${v}" class="riskIn"></div>`;
+      }).join("")}</div>
+    </div>`).join("");
+}
+
+$("rebuild").onclick = async () => {
+  if (!current) return;
+  // collect edits
+  current.arms.forEach((a, i) => {
+    a.name = document.querySelector(`.armName[data-arm="${i}"]`).value.trim() || a.name;
+    const ins = [...document.querySelectorAll(`.riskIn[data-arm="${i}"]`)];
+    const pairs = ins.filter(x => x.value !== "").map(x => [parseFloat(x.dataset.t), parseInt(x.value, 10)]);
+    a.t_risk = pairs.map(p => p[0]);
+    a.n_risk = pairs.map(p => p[1]);
+  });
+  const ti = parseInt((document.querySelector('input[name="treat"]:checked') || {value: 0}).value, 10);
+  const pub = parseFloat($("pubHr").value);
+  $("rebuild").disabled = true;
+  $("status").textContent = "Rebuilding patients...";
+  try {
+    const r = await fetch("/api/km/analyze", { method: "POST", headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({ read: current, treatment_index: ti, published_hr: isNaN(pub) ? null : pub }) });
+    const d = await r.json();
+    if (!d.ok) { $("status").textContent = d.error; return; }
+    analysis = d;
+    renderResult();
+    $("status").textContent = "";
+    step(3);
+    $("result").scrollIntoView({ behavior: "smooth", block: "start" });
+  } finally { $("rebuild").disabled = false; }
+};
+
+function renderResult() {
+  const d = analysis;
+  $("result").classList.remove("hidden");
+  $("hrLabel").textContent = `Hazard ratio, ${d.treatment} vs ${d.control}`;
+  $("hrBig").textContent = f2(d.hr.hr);
+  $("hrCi").textContent = `95% CI ${f2(d.hr.lo)} to ${f2(d.hr.hi)} · p = ${d.hr.p < 0.001 ? "<0.001" : d.hr.p.toFixed(3)}`;
+  if (d.published_hr) {
+    const e = d.hr_error_pct, c = e <= 5 ? "good" : e <= 10 ? "warn" : "bad";
+    $("pubCompare").innerHTML = `Paper reports <b>${f2(d.published_hr)}</b>. Ours is <b class="${c}">${e}% off</b>.`;
+  } else $("pubCompare").innerHTML = `<span class="muted small">Enter the paper's hazard ratio above to check our accuracy.</span>`;
+  const T = d.checks.treatment, C = d.checks.control;
+  const pm = (x) => x == null ? "n/a" : `<span class="${x >= .9 ? "good" : x >= .75 ? "warn" : "bad"}">${Math.round(x * 100)}%</span>`;
+  const gap = (x) => `<span class="${x <= .02 ? "good" : x <= .05 ? "warn" : "bad"}">${(x * 100).toFixed(1)} pts</span>`;
+  $("checks").innerHTML = `
+    <span class="muted">Patients rebuilt</span><b>${T.n_patients} + ${C.n_patients} (${T.n_events + C.n_events} deaths)</b>
+    <span class="muted">Median survival</span><b>${f2(T.median)} vs ${f2(C.median)}</b>
+    <span class="muted">Curve fit (avg gap)</span><b>${gap(T.curve_mean_gap)} · ${gap(C.curve_mean_gap)}</b>
+    <span class="muted">Pixel match</span><b>${pm(T.pixel_match)} · ${pm(C.pixel_match)}</b>`;
+  $("rebuiltImg").src = "data:image/png;base64," + d.rebuilt_png;
+}
+
+$("addTrial").onclick = () => {
+  if (!analysis) return;
+  const name = $("trialName").value.trim() || `Trial ${trials.length + 1}`;
+  trials.push({ name, hr: analysis.hr.hr, lo: analysis.hr.lo, hi: analysis.hr.hi, log_hr: analysis.hr.log_hr,
+                se: analysis.hr.se, source: "rebuilt", treatment: analysis.treatment, control: analysis.control,
+                published_hr: analysis.published_hr || null });
+  save(); renderTrials(); step(4);
+  $("trialName").value = ""; $("pubHr").value = "";
+  $("review").classList.add("hidden"); $("result").classList.add("hidden");
+  $("status").textContent = `Added ${name}. Add another trial, or pool them below.`;
+};
+
+$("mAdd").onclick = () => {
+  const hr = parseFloat($("mHr").value), lo = parseFloat($("mLo").value), hi = parseFloat($("mHi").value);
+  if (!(hr > 0 && lo > 0 && hi > lo)) { alert("Enter HR and a valid 95% CI."); return; }
+  trials.push({ name: $("mName").value.trim() || `Trial ${trials.length + 1}`, hr, lo, hi, log_hr: Math.log(hr),
+                se: (Math.log(hi) - Math.log(lo)) / (2 * 1.96), source: "reported" });
+  save(); renderTrials();
+  ["mName", "mHr", "mLo", "mHi"].forEach(i => $(i).value = "");
+};
+
+function renderTrials() {
+  if (!trials.length) { $("trialTable").innerHTML = `<tr><td class="muted">No trials yet. Add one above.</td></tr>`; return; }
+  $("trialTable").innerHTML = `<tr><th>Trial</th><th class="num">HR (95% CI)</th><th class="num">Paper</th><th>Source</th><th></th></tr>` +
+    trials.map((t, i) => `<tr><td>${esc(t.name)}</td><td class="num">${f2(t.hr)} (${f2(t.lo)}-${f2(t.hi)})</td>
+      <td class="num">${t.published_hr ? f2(t.published_hr) : "-"}</td><td class="small muted">${t.source}</td>
+      <td class="num"><button class="btn ghost small" style="padding:4px 10px" data-del="${i}">Remove</button></td></tr>`).join("");
+  document.querySelectorAll("[data-del]").forEach(b => b.onclick = () => { trials.splice(+b.dataset.del, 1); save(); renderTrials(); });
+}
+
+$("clearBtn").onclick = () => { trials = []; save(); renderTrials(); $("poolOut").classList.add("hidden"); };
+
+$("poolBtn").onclick = async () => {
+  if (trials.length < 2) { $("status").textContent = "Add at least two trials to pool."; return; }
+  const tr = trials.find(t => t.treatment);
+  const title = tr ? `Overall survival: ${tr.treatment} vs ${tr.control}` : "Overall survival: treatment vs control";
+  const r = await fetch("/api/km/pool", { method: "POST", headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({ trials, title }) });
+  const d = await r.json();
+  if (!d.ok) { $("status").textContent = d.error; return; }
+  const p = d.pooled, who = tr ? tr.treatment : "The treatment";
+  let v;
+  if (p.hi < 1) v = `Across ${p.k} trials, <b>${esc(who)}</b> lowered the risk of death by <b>${Math.round((1 - p.hr) * 100)}%</b> (HR ${f2(p.hr)}, 95% CI ${f2(p.lo)} to ${f2(p.hi)}).`;
+  else if (p.lo > 1) v = `Across ${p.k} trials, <b>${esc(who)}</b> raised the risk of death by <b>${Math.round((p.hr - 1) * 100)}%</b> (HR ${f2(p.hr)}, 95% CI ${f2(p.lo)} to ${f2(p.hi)}).`;
+  else v = `Across ${p.k} trials there is <b>no clear difference</b> (HR ${f2(p.hr)}, 95% CI ${f2(p.lo)} to ${f2(p.hi)}).`;
+  const het = p.i2 < 25 ? "consistent across trials" : p.i2 < 50 ? "moderately different between trials" : "very different between trials, so interpret with care";
+  $("verdict").innerHTML = `${v} Results are ${het} (I² = ${Math.round(p.i2)}%).`;
+  $("forest").src = "data:image/png;base64," + d.forest_png;
+  $("poolOut").classList.remove("hidden");
+  step(4);
+};
+
+renderTrials();
+</script>
+</body>
+</html>

@@ -1,0 +1,62 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Run PriorArt Lens server",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "uvicorn",
+      "args": [
+        "app.main:app",
+        "--reload",
+        "--host",
+        "0.0.0.0",
+        "--port",
+        "8000"
+      ],
+      "justMyCode": true
+    },
+    {
+      "name": "Benchmark (clean synthetic charts)",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "scripts.evaluate",
+      "args": [
+        "--data",
+        "data/synth"
+      ]
+    },
+    {
+      "name": "Benchmark (fake phone photos)",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "scripts.evaluate",
+      "args": [
+        "--data",
+        "data/synth_cam",
+        "--rectify"
+      ]
+    },
+    {
+      "name": "Benchmark survival (clean figures)",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "km.evaluate",
+      "args": [
+        "--data",
+        "data/km"
+      ]
+    },
+    {
+      "name": "Benchmark survival (fake phone photos)",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "km.evaluate",
+      "args": [
+        "--data",
+        "data/km_cam",
+        "--rectify"
+      ]
+    }
+  ]
+}
