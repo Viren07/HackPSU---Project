@@ -38,7 +38,9 @@ def get_ocr_small():
 
         _ocr_small = RapidOCR()
         # stop the detector from upscaling small crops to 736 px, and skip the rotation classifier
-        for op in _ocr_small.text_detector.preprocess_op:
+        # (internals differ between rapidocr versions; skip the speed-up if they are not there)
+        det = getattr(_ocr_small, "text_detector", None) or getattr(_ocr_small, "text_det", None)
+        for op in getattr(det, "preprocess_op", []) or []:
             if hasattr(op, "limit_type"):
                 op.limit_type, op.limit_side_len = "max", 960
         _ocr_small.use_angle_cls = False

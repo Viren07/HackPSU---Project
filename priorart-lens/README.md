@@ -109,8 +109,7 @@ data/real/           real trial figures with citations (SOURCES.md)
 - Pooling: DerSimonian R, Laird N. *Control Clin Trials* 1986;7:177-188.
 
 ## Honest limits
-- Rebuilt data approximates the original data, typically within 1 to 2% on the hazard ratio; it is
-  not the real patient data.
+- Rebuilt data approximates the original data, typically within 1 to 2% on the hazard ratio; it is not the real patient data.
 - Validated on oncology trials; works on any Kaplan-Meier figure with a number-at-risk table.
 - Two arms per figure. Black-and-white figures with overlapping curves are harder.
 - Indirect comparisons assume the two trials enrolled similar patients. Bean checks the outcome
