@@ -113,6 +113,44 @@
   .tablewrap { overflow-x: auto; }
   details summary { cursor: pointer; font-weight: 600; }
   a { color: var(--ink); }
+
+  /* ---- Mr. Bean help assistant ---- */
+  .bean-fab { position: fixed; right: 20px; bottom: 20px; z-index: 50; display: flex; align-items: center; gap: 10px;
+              border: 0; cursor: pointer; padding: 8px 18px 8px 8px; border-radius: 40px; color: var(--board);
+              background: var(--ink) var(--noise); font: 600 15px/1 "Instrument Sans", sans-serif;
+              box-shadow: -1px -1px 0 rgba(247,232,210,.5), 2px 3px 0 rgba(31,20,11,.55), 8px 14px 22px rgba(31,20,11,.4);
+              transition: transform .15s ease; }
+  .bean-fab:hover { transform: translate(-1px, -2px); }
+  .bean-fab:hover .bean-ico { transform: rotate(-12deg); }
+  .bean-fab .bean-ico { width: 42px; height: 42px; padding: 3px; border-radius: 50%; background: #f2e4d0; transition: transform .2s ease; }
+  .bean-panel { position: fixed; right: 20px; bottom: 20px; z-index: 51; width: 380px; max-width: calc(100vw - 32px);
+                height: 560px; max-height: calc(100vh - 40px); display: flex; flex-direction: column; border-radius: 10px;
+                background: var(--board) var(--noise); box-shadow: var(--raised), 0 20px 50px rgba(31,20,11,.35); overflow: hidden; }
+  .bean-head { display: flex; align-items: center; gap: 10px; padding: 12px 14px; background: var(--ply) var(--noise); color: var(--board); }
+  .bean-head .bean-ico { width: 40px; height: 40px; flex: none; padding: 3px; border-radius: 50%; background: #f2e4d0; box-shadow: inset 1px 1px 3px rgba(31,20,11,.45); }
+  .bean-head b { font: 800 17px/1 Gabarito, sans-serif; text-transform: uppercase; letter-spacing: .03em; display: block; }
+  .bean-head span { font-size: 12px; opacity: .8; }
+  .bean-x { margin-left: auto; background: none; border: 0; color: var(--board); font-size: 24px; line-height: 1; cursor: pointer; padding: 4px 8px; border-radius: 6px; }
+  .bean-x:hover { background: rgba(255,255,255,.08); }
+  .bean-log { flex: 1; overflow-y: auto; padding: 14px; display: flex; flex-direction: column; gap: 10px; }
+  .bmsg { max-width: 88%; padding: 10px 12px; border-radius: 10px; font-size: 14.5px; line-height: 1.5; overflow-wrap: anywhere; }
+  .bmsg.bot { align-self: flex-start; background: #f2e4d0; box-shadow: var(--raised-sm); border-top-left-radius: 3px; }
+  .bmsg.me { align-self: flex-end; background: var(--cut) var(--noise); color: #f7ead8; border-top-right-radius: 3px; }
+  .bmsg.err { background: rgba(155,47,31,.12); box-shadow: var(--inset); }
+  .bmsg p { margin: 0 0 6px; } .bmsg p:last-child { margin: 0; } .bmsg ul, .bmsg ol { margin: 4px 0; padding-left: 20px; }
+  .bmsg code { background: rgba(54,38,26,.1); padding: 1px 4px; border-radius: 4px; font-size: 13px; }
+  .bean-chips { display: flex; flex-wrap: wrap; gap: 6px; padding: 0 14px 10px; }
+  .bean-chips button { font: 500 12.5px/1.2 "Instrument Sans", sans-serif; color: var(--ink); border: 0; cursor: pointer;
+                       background: var(--board-hi); padding: 7px 10px; border-radius: 14px; box-shadow: var(--raised-sm); }
+  .bean-chips button:active { box-shadow: var(--inset); }
+  .bean-form { display: flex; gap: 8px; padding: 10px 12px 12px; border-top: 1px solid var(--line); }
+  .bean-form input { flex: 1; }
+  .bean-form .btn { padding: 10px 14px; }
+  .typing span { display: inline-block; width: 7px; height: 7px; margin: 0 2px; border-radius: 50%; background: var(--cut); animation: bob 1s infinite; }
+  .typing span:nth-child(2) { animation-delay: .15s; } .typing span:nth-child(3) { animation-delay: .3s; }
+  @keyframes bob { 0%, 60%, 100% { transform: translateY(0); opacity: .5 } 30% { transform: translateY(-5px); opacity: 1 } }
+  @media (prefers-reduced-motion: reduce) { .typing span { animation: none; } .bean-fab, .bean-fab .bean-ico { transition: none; } }
+  @media (max-width: 640px) { .bean-panel { right: 16px; bottom: 16px; height: 70vh; } .bean-fab { right: 16px; bottom: 16px; } }
   @media (max-width: 640px) { .card { padding: 16px; } .big { font-size: 48px; } .steps { margin-left: 0; } }
 </style>
 </head>
@@ -147,6 +185,32 @@
     </div>
     <label class="small muted" style="display:flex;gap:6px;margin-top:10px">
       <input type="checkbox" id="rectify" checked> Straighten photo (turn off for screenshots and PDF crops)</label>
+
+    <div class="arm" style="margin-top:16px">
+      <div class="small" style="font-weight:600;margin-bottom:8px">Or start from the paper itself (open-access papers)</div>
+      <div class="row">
+        <label class="f" style="flex:3 1 280px">Paper link, DOI or PubMed id
+          <input type="text" id="paperLink" placeholder="e.g. https://doi.org/10.1056/NEJMoa1504627"></label>
+        <label class="f" style="flex:1 1 120px">Figure
+          <input type="text" id="figLabel" placeholder="e.g. Figure 2A"></label>
+        <button class="btn ghost" id="findBtn">Find figure</button>
+      </div>
+      <div id="paperBox" class="hidden" style="margin-top:14px">
+        <div id="paperMeta" class="small"></div>
+        <p class="small muted" id="cropHelp" style="margin:10px 0 8px">Drag a box around the survival curve <b>and</b> its
+          number-at-risk table, then press Read this box.</p>
+        <div id="cropWrap" style="position:relative;touch-action:none;user-select:none;cursor:crosshair;max-width:900px">
+          <img class="fig" id="paperImg" alt="The figure from the paper" draggable="false">
+          <div id="cropBox" class="hidden" style="position:absolute;border:2px dashed var(--bad);background:rgba(155,47,31,.08);pointer-events:none"></div>
+        </div>
+        <div class="row" style="margin-top:12px">
+          <button class="btn" id="readCrop" disabled>Read this box</button>
+          <button class="btn ghost" id="readWhole">Use the whole figure</button>
+        </div>
+        <details style="margin-top:10px"><summary class="small muted">Figure caption from the paper</summary>
+          <p class="small" id="paperCaption"></p></details>
+      </div>
+    </div>
     <div id="status"></div>
   </section>
 
@@ -250,28 +314,162 @@ const endpointOptions = (sel) => `<option value="">Choose the outcome...</option
 const eventWord = (ep) => ep === "os" ? "death" : ep === "pfs" ? "progression or death" : "the event";
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;"}[c]));
 
+let paperCtx = null;  // what the paper itself says about the figure (when it came from a link)
+
 $("snap").onclick = () => $("file").click();
 $("file").onchange = async (e) => {
   const f = e.target.files[0];
   if (!f) return;
+  paperCtx = null;
+  $("paperBox").classList.add("hidden");
+  await readImage(f, $("rectify").checked);
+  $("file").value = "";
+};
+
+async function readImage(blob, rectify) {
   const fd = new FormData();
-  fd.append("image", f);
-  fd.append("rectify", $("rectify").checked);
+  fd.append("image", blob, "figure.png");
+  fd.append("rectify", rectify);
   $("status").textContent = "Reading curves and the number-at-risk table...";
-  $("snap").disabled = true;
+  ["snap", "readCrop", "readWhole"].forEach(i => $(i).disabled = true);
   $("result").classList.add("hidden");
   try {
     const r = await fetch("/api/km/read", { method: "POST", body: fd });
     const d = await r.json();
     if (!d.ok) { $("status").textContent = d.error || "Could not read this figure."; return; }
     current = d;
+    applyPaperContext();
     renderReview();
     $("status").textContent = "";
     step(2);
+    $("review").scrollIntoView({ behavior: "smooth", block: "start" });
   } catch (err) {
     $("status").textContent = "Could not reach the server: " + err;
-  } finally { $("snap").disabled = false; $("file").value = ""; }
+  } finally {
+    $("snap").disabled = false; $("readWhole").disabled = false; $("readCrop").disabled = !cropRect();
+  }
+}
+
+// ---- from a paper link: fetch the figure, let the person box the panel they want
+$("findBtn").onclick = async () => {
+  const link = $("paperLink").value.trim(), fig = $("figLabel").value.trim();
+  if (!link || !fig) { $("status").textContent = "Paste the paper link and type the figure, for example Figure 2A."; return; }
+  $("findBtn").disabled = true;
+  $("status").textContent = "Looking up the paper and downloading the figure...";
+  $("paperBox").classList.add("hidden");
+  try {
+    const r = await fetch("/api/paper/figure", { method: "POST", headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({ link, figure: fig }) });
+    const d = await r.json();
+    if (!d.ok) { $("status").textContent = d.error; return; }
+    const p = d.paper, F = d.figure;
+    paperCtx = { endpoint: F.endpoint, endpoint_evidence: F.endpoint_evidence, drugs: p.drugs, panel: d.panel,
+                 label: `${F.label}${d.panel || ""}`, title: p.title };
+    if (!$("trialName").value.trim()) $("trialName").value = p.trial_name;
+    $("paperMeta").innerHTML = `<b>${esc(p.title)}</b><br><span class="muted">${esc(p.authors.split(",").slice(0, 3).join(","))}${p.authors.split(",").length > 3 ? " et al." : ""}
+      · ${esc(p.journal)} ${esc(p.year)} · ${esc(F.label)}${d.panel ? ", panel " + d.panel : ""}</span>` +
+      (p.drugs ? `<br>Paper compares <b>${esc(p.drugs.new)}</b> with <b>${esc(p.drugs.old)}</b>.` : "") +
+      (F.endpoint ? `<br>The caption says ${d.panel && F.panel_text ? "panel " + d.panel : "this figure"} shows <b>${ENDPOINTS[F.endpoint]}</b>.` : "");
+    $("paperCaption").textContent = F.caption || "(no caption)";
+    $("cropHelp").innerHTML = d.panel
+      ? `Drag a box around <b>panel ${d.panel}</b>: the curves <b>and</b> the number-at-risk table under them. Then press Read this box.`
+      : `If the figure has several panels, drag a box around the one you want (curves and number-at-risk table). Otherwise use the whole figure.`;
+    $("paperImg").src = "data:image/png;base64," + F.image_png;
+    $("cropBox").classList.add("hidden"); crop = null; $("readCrop").disabled = true;
+    $("paperBox").classList.remove("hidden");
+    $("status").textContent = "";
+  } catch (err) {
+    $("status").textContent = "Could not reach the server: " + err;
+  } finally { $("findBtn").disabled = false; }
 };
+
+let crop = null, dragFrom = null;
+const relPos = (e) => { const b = $("paperImg").getBoundingClientRect();
+  return [Math.min(Math.max(e.clientX - b.left, 0), b.width), Math.min(Math.max(e.clientY - b.top, 0), b.height)]; };
+const cropRect = () => crop && crop.w > 12 && crop.h > 12 ? crop : null;
+function drawCrop() {
+  const b = $("cropBox"), img = $("paperImg");
+  if (!crop) { b.classList.add("hidden"); return; }
+  Object.assign(b.style, { left: crop.x + img.offsetLeft + "px", top: crop.y + img.offsetTop + "px",
+                           width: crop.w + "px", height: crop.h + "px" });
+  b.classList.remove("hidden");
+}
+$("cropWrap").addEventListener("pointerdown", (e) => {
+  dragFrom = relPos(e); crop = { x: dragFrom[0], y: dragFrom[1], w: 0, h: 0 };
+  $("cropWrap").setPointerCapture(e.pointerId); drawCrop();
+});
+$("cropWrap").addEventListener("pointermove", (e) => {
+  if (!dragFrom) return;
+  const [x, y] = relPos(e);
+  crop = { x: Math.min(x, dragFrom[0]), y: Math.min(y, dragFrom[1]), w: Math.abs(x - dragFrom[0]), h: Math.abs(y - dragFrom[1]) };
+  drawCrop();
+});
+const endDrag = () => { if (!dragFrom) return; dragFrom = null; $("readCrop").disabled = !cropRect(); if (!cropRect()) { crop = null; drawCrop(); } };
+$("cropWrap").addEventListener("pointerup", endDrag);
+$("cropWrap").addEventListener("pointercancel", endDrag);
+
+function figureBlob(rect) {
+  const img = $("paperImg");
+  // the box is in on-screen pixels inside the 10px frame; map it back to the real image pixels
+  const inner = img.clientWidth, s = img.naturalWidth / inner;
+  const r = rect ? { x: rect.x - 10, y: rect.y - 10, w: rect.w, h: rect.h } : { x: 0, y: 0, w: inner, h: img.clientHeight };
+  const x = Math.max(0, Math.round(r.x * s)), y = Math.max(0, Math.round(r.y * s));
+  const w = Math.min(img.naturalWidth - x, Math.round(r.w * s)), h = Math.min(img.naturalHeight - y, Math.round(r.h * s));
+  const c = document.createElement("canvas");
+  c.width = w; c.height = h;
+  const g = c.getContext("2d");
+  g.fillStyle = "#fff"; g.fillRect(0, 0, w, h);
+  g.drawImage(img, x, y, w, h, 0, 0, w, h);
+  return new Promise(res => c.toBlob(res, "image/png"));
+}
+$("readCrop").onclick = async () => { if (cropRect()) await readImage(await figureBlob(cropRect()), false); };
+$("readWhole").onclick = async () => readImage(await figureBlob(null), false);
+
+function editDistance(a, b) {
+  const dp = Array.from({ length: a.length + 1 }, (_, i) => [i, ...Array(b.length).fill(0)]);
+  for (let j = 1; j <= b.length; j++) dp[0][j] = j;
+  for (let i = 1; i <= a.length; i++)
+    for (let j = 1; j <= b.length; j++)
+      dp[i][j] = Math.min(dp[i - 1][j] + 1, dp[i][j - 1] + 1, dp[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+  return dp[a.length][b.length];
+}
+
+// use what the paper says to fill gaps and double-check what we read off the image
+function applyPaperContext() {
+  if (!paperCtx || !current) return;
+  const P = paperCtx;
+  current.warnings = current.warnings || [];
+  if (P.endpoint) {
+    if (!current.endpoint) {
+      current.endpoint = P.endpoint;
+      current.endpoint_evidence = P.endpoint_evidence;
+      current.warnings = current.warnings.filter(w => !w.startsWith("Could not tell what this curve measures"));
+    } else if (current.endpoint !== P.endpoint) {
+      current.warnings.push(`The figure looks like ${ENDPOINTS[current.endpoint]}, but the paper's caption says ` +
+        `${P.panel ? "panel " + P.panel : "this figure"} shows ${ENDPOINTS[P.endpoint]}. Check that you boxed the right panel.`);
+    }
+  }
+  if (P.drugs) {
+    // OCR can misspell a drug ("Doxetaxel"); if an arm name is a near-miss of a drug in the paper's title,
+    // use the title's spelling so studies line up when compared
+    const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
+    current.arms.forEach(a => {
+      for (const drug of [P.drugs.new, P.drugs.old]) {
+        const d = editDistance(key(a.name), key(drug));
+        if (d > 0 && d <= Math.max(1, Math.floor(key(drug).length / 5))) { a.name = cap(drug); break; }
+        if (d === 0) { a.name = cap(drug); break; }
+      }
+    });
+  }
+  if (P.drugs && current.arms.length === 2) {
+    const k = (s) => key(s).slice(0, 6);
+    const hit = (name, drug) => drug && k(name) && (key(name).includes(k(drug)) || key(drug).includes(k(name)));
+    const iNew = current.arms.findIndex(a => hit(a.name, P.drugs.new));
+    const iOld = current.arms.findIndex(a => hit(a.name, P.drugs.old));
+    if (iNew >= 0 && iNew !== iOld) current.treatment_index = iNew;
+    else if (iOld >= 0) current.treatment_index = 1 - iOld;
+  }
+}
 
 function renderReview() {
   $("review").classList.remove("hidden");
@@ -499,6 +697,132 @@ $("poolBtn").onclick = async () => {
 
 $("mEnd").innerHTML = endpointOptions("os");
 renderTrials();
+</script>
+
+<!-- Mr. Bean: help assistant -->
+<button class="bean-fab" id="beanFab" aria-label="Ask Mr. Bean for help"><svg class="bean-ico" viewBox="0 0 64 64" aria-hidden="true">
+  <defs><radialGradient id="beanG1" cx="38%" cy="32%" r="75%"><stop offset="0" stop-color="#a5714a"/><stop offset=".55" stop-color="#7a4a2a"/><stop offset="1" stop-color="#4a2a16"/></radialGradient></defs>
+  <ellipse cx="32" cy="33" rx="21" ry="27" transform="rotate(-28 32 33)" fill="url(#beanG1)"/>
+  <path d="M44 9 C39 13 37 17 37 20" fill="none" stroke="#2c170b" stroke-width="3" stroke-linecap="round" opacity=".75"/><path d="M26 47 C25 51 22 54 19 57" fill="none" stroke="#2c170b" stroke-width="3" stroke-linecap="round" opacity=".75"/>
+  <ellipse cx="24" cy="28" rx="3.6" ry="4.3" fill="#fff"/><ellipse cx="38" cy="25" rx="3.6" ry="4.3" fill="#fff"/>
+  <circle cx="25" cy="29" r="2" fill="#1d0f06"/><circle cx="39" cy="26" r="2" fill="#1d0f06"/>
+  <circle cx="25.6" cy="28.2" r=".7" fill="#fff"/><circle cx="39.6" cy="25.2" r=".7" fill="#fff"/>
+  <path d="M26 37 Q32 42 39 35" fill="none" stroke="#1d0f06" stroke-width="2.2" stroke-linecap="round"/>
+  <ellipse cx="21" cy="36" rx="3" ry="1.8" fill="#e08a6a" opacity=".55"/><ellipse cx="43" cy="32" rx="3" ry="1.8" fill="#e08a6a" opacity=".55"/>
+</svg><span>Ask Mr. Bean</span></button>
+<section class="bean-panel hidden" id="beanPanel" role="dialog" aria-label="Mr. Bean help chat">
+  <div class="bean-head"><svg class="bean-ico" viewBox="0 0 64 64" aria-hidden="true">
+  <defs><radialGradient id="beanG2" cx="38%" cy="32%" r="75%"><stop offset="0" stop-color="#a5714a"/><stop offset=".55" stop-color="#7a4a2a"/><stop offset="1" stop-color="#4a2a16"/></radialGradient></defs>
+  <ellipse cx="32" cy="33" rx="21" ry="27" transform="rotate(-28 32 33)" fill="url(#beanG2)"/>
+  <path d="M44 9 C39 13 37 17 37 20" fill="none" stroke="#2c170b" stroke-width="3" stroke-linecap="round" opacity=".75"/><path d="M26 47 C25 51 22 54 19 57" fill="none" stroke="#2c170b" stroke-width="3" stroke-linecap="round" opacity=".75"/>
+  <ellipse cx="24" cy="28" rx="3.6" ry="4.3" fill="#fff"/><ellipse cx="38" cy="25" rx="3.6" ry="4.3" fill="#fff"/>
+  <circle cx="25" cy="29" r="2" fill="#1d0f06"/><circle cx="39" cy="26" r="2" fill="#1d0f06"/>
+  <circle cx="25.6" cy="28.2" r=".7" fill="#fff"/><circle cx="39.6" cy="25.2" r=".7" fill="#fff"/>
+  <path d="M26 37 Q32 42 39 35" fill="none" stroke="#1d0f06" stroke-width="2.2" stroke-linecap="round"/>
+  <ellipse cx="21" cy="36" rx="3" ry="1.8" fill="#e08a6a" opacity=".55"/><ellipse cx="43" cy="32" rx="3" ry="1.8" fill="#e08a6a" opacity=".55"/>
+</svg><div><b>Mr. Bean</b><span>Your fresh-brewed guide to PriorArt Lens</span></div>
+    <button class="bean-x" id="beanClose" aria-label="Close chat">&times;</button></div>
+  <div class="bean-log" id="beanLog" aria-live="polite"></div>
+  <div class="bean-chips" id="beanChips"></div>
+  <form class="bean-form" id="beanForm">
+    <input type="text" id="beanIn" placeholder="Ask about the site, the vision, the math..." autocomplete="off" maxlength="1000">
+    <button class="btn" id="beanSend" type="submit">Send</button>
+  </form>
+</section>
+
+<script>
+// ---- Mr. Bean ----
+(() => {
+  const $ = (id) => document.getElementById(id);
+  const esc = (t) => String(t).replace(/[&<>"]/g, (c) => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;"}[c]));
+  let history = [];
+  try { history = JSON.parse(sessionStorage.getItem("bean_chat") || "[]"); } catch (e) { history = []; }
+  const keep = () => { try { sessionStorage.setItem("bean_chat", JSON.stringify(history.slice(-30))); } catch (e) {} };
+  const HELLO = "Hi, I'm **Mr. Bean**. Ask me anything about PriorArt Lens: how to use it, how it reads figures, or what your numbers mean.";
+  const CHIPS = ["How do I add a trial from a paper link?", "What does my hazard ratio mean?",
+                 "How does the computer vision read the curves?", "How are patients rebuilt?",
+                 "How do you compare two drugs that never met?"];
+
+  // light markdown: escape first, then **bold**, `code`, lists, paragraphs
+  function md(t) {
+    const lines = esc(t).replace(/\*\*(.+?)\*\*/g, "<b>$1</b>").replace(/`([^`]+)`/g, "<code>$1</code>").split(/\n/);
+    let out = "", list = null;
+    for (const raw of lines) {
+      const l = raw.trim(), ul = l.match(/^[-*•]\s+(.*)/), ol = l.match(/^\d+[.)]\s+(.*)/);
+      const kind = ul ? "ul" : ol ? "ol" : null;
+      if (list && kind !== list) { out += `</${list}>`; list = null; }
+      if (kind) { if (!list) { out += `<${kind}>`; list = kind; } out += `<li>${(ul || ol)[1]}</li>`; }
+      else if (l) out += `<p>${l}</p>`;
+    }
+    return out + (list ? `</${list}>` : "");
+  }
+  function add(role, text, cls = "") {
+    const d = document.createElement("div");
+    d.className = `bmsg ${role === "user" ? "me" : "bot"} ${cls}`;
+    d.innerHTML = role === "user" ? esc(text) : md(text);
+    $("beanLog").appendChild(d);
+    $("beanLog").scrollTop = $("beanLog").scrollHeight;
+    return d;
+  }
+  function render() {
+    $("beanLog").innerHTML = "";
+    add("assistant", HELLO);
+    history.forEach(m => add(m.role, m.text));
+    $("beanChips").innerHTML = history.length ? "" : CHIPS.map(c => `<button type="button">${esc(c)}</button>`).join("");
+    $("beanChips").querySelectorAll("button").forEach(b => b.onclick = () => send(b.textContent));
+  }
+
+  // what is on the user's screen, so answers can explain their own numbers
+  function pageState() {
+    const st = { step: ["p1", "p2", "p3", "p4"].filter(p => $(p) && $(p).classList.contains("on")).length };
+    try {
+      if ($("trialName").value) st.trial_name = $("trialName").value;
+      if (typeof paperCtx !== "undefined" && paperCtx) st.paper = { title: paperCtx.title, figure: paperCtx.label };
+      if (typeof current !== "undefined" && current && !$("review").classList.contains("hidden"))
+        st.figure_read = { outcome: ($("endpointSel") || {}).value || current.endpoint, printed_hr: current.printed_hr && current.printed_hr.hr,
+          warnings: current.warnings, arms: current.arms.map(a => ({ name: a.name, at_risk: a.n_risk, at_times: a.t_risk })) };
+      if (typeof analysis !== "undefined" && analysis && !$("result").classList.contains("hidden"))
+        st.rebuilt_result = { new: analysis.treatment, old: analysis.control, hr: analysis.hr, paper_hr: analysis.published_hr,
+          percent_off_paper: analysis.hr_error_pct,
+          checks: Object.fromEntries(Object.entries(analysis.checks).map(([k, c]) => [k, { patients: c.n_patients, events: c.n_events,
+            median: c.median, curve_mean_gap: c.curve_mean_gap, pixel_match: c.pixel_match }])) };
+      if (typeof trials !== "undefined" && trials.length)
+        st.saved_studies = trials.map(t => ({ name: t.name, new: t.treatment, old: t.control, outcome: t.endpoint, hr: t.hr, lo: t.lo, hi: t.hi,
+          paper_hr: t.published_hr, source: t.source }));
+      const v = $("cmpVerdict"); if (v && !$("cmpOut").classList.contains("hidden")) st.comparison_shown = v.textContent.trim();
+      const w = $("cmpWarn"); if (w && w.textContent.trim()) st.comparison_warning = w.textContent.trim();
+      const s = $("status"); if (s && s.textContent.trim()) st.status_message = s.textContent.trim();
+    } catch (e) {}
+    return st;
+  }
+
+  let busy = false;
+  async function send(text) {
+    text = (text || "").trim();
+    if (!text || busy) return;
+    busy = true; $("beanSend").disabled = true; $("beanChips").innerHTML = "";
+    history.push({ role: "user", text }); keep(); add("user", text);
+    $("beanIn").value = "";
+    const wait = add("assistant", ""); wait.innerHTML = `<span class="typing" aria-label="Mr. Bean is typing"><span></span><span></span><span></span></span>`;
+    try {
+      const r = await fetch("/api/chat", { method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ messages: history, page_state: pageState() }) });
+      const d = await r.json();
+      wait.remove();
+      if (!d.ok) { add("assistant", d.error || "Something went wrong.", "err"); history.pop(); keep(); }
+      else { history.push({ role: "assistant", text: d.answer }); keep(); add("assistant", d.answer); }
+    } catch (e) {
+      wait.remove(); add("assistant", "I couldn't reach the server. Is it still running?", "err"); history.pop(); keep();
+    } finally { busy = false; $("beanSend").disabled = false; $("beanIn").focus(); }
+  }
+
+  const open = () => { $("beanPanel").classList.remove("hidden"); $("beanFab").classList.add("hidden"); render(); $("beanIn").focus(); };
+  const close = () => { $("beanPanel").classList.add("hidden"); $("beanFab").classList.remove("hidden"); $("beanFab").focus(); };
+  $("beanFab").onclick = open;
+  $("beanClose").onclick = close;
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !$("beanPanel").classList.contains("hidden")) close(); });
+  $("beanForm").onsubmit = (e) => { e.preventDefault(); send($("beanIn").value); };
+})();
 </script>
 </body>
 </html>

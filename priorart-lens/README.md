@@ -23,6 +23,17 @@ survival meta-analysis and health-technology assessment.
 6. **Pool trials**: random-effects meta-analysis (DerSimonian-Laird), with a forest plot and a
    plain-English verdict.
 
+## Mr. Bean (help chat)
+The coffee-bean button at the bottom right opens **Mr. Bean**, a help assistant powered by Google
+Gemini. He answers questions about using the site, the computer vision, and the statistics, and he
+can see the numbers on your screen to explain your own results.
+1. Get a free key at https://aistudio.google.com/apikey
+2. Copy `.env.example` to `.env` in the project folder and paste the key: `GEMINI_API_KEY=...`
+3. Restart the server.
+
+The key stays on the server and `.env` is git-ignored. Optional: `GEMINI_MODEL=gemini-3.6-flash`
+picks a specific model. Otherwise it tries recent Flash models in order.
+
 ## Setup (Windows, VS Code)
 In a **PowerShell** terminal inside the project folder:
 ```powershell
