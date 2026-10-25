@@ -1,0 +1,146 @@
+[
+  {
+    "file": "synthetic_1.png",
+    "new": "Pembrolizumab",
+    "old": "Chemotherapy",
+    "truth": {
+      "hr": 0.465,
+      "lo": 0.308,
+      "hi": 0.702,
+      "median_new": null,
+      "median_old": 19.79963349092243
+    },
+    "ours": {
+      "hr": 0.456,
+      "lo": 0.301,
+      "hi": 0.692,
+      "error_pct": 1.8
+    }
+  },
+  {
+    "file": "synthetic_2.png",
+    "new": "Nivolumab",
+    "old": "Docetaxel",
+    "truth": {
+      "hr": 0.976,
+      "lo": 0.759,
+      "hi": 1.254,
+      "median_new": 11.422901343354994,
+      "median_old": 12.138874554656923
+    },
+    "ours": {
+      "hr": 0.952,
+      "lo": 0.738,
+      "hi": 1.228,
+      "error_pct": 2.4
+    }
+  },
+  {
+    "file": "synthetic_3.png",
+    "new": "Osimertinib",
+    "old": "Standard EGFR-TKI",
+    "truth": {
+      "hr": 0.966,
+      "lo": 0.699,
+      "hi": 1.334,
+      "median_new": 18.436019062940986,
+      "median_old": 18.169541951926675
+    },
+    "ours": {
+      "hr": 0.96,
+      "lo": 0.695,
+      "hi": 1.326,
+      "error_pct": 0.6
+    }
+  },
+  {
+    "file": "synthetic_4.png",
+    "new": "Drug A",
+    "old": "Placebo",
+    "truth": {
+      "hr": 0.698,
+      "lo": 0.52,
+      "hi": 0.936,
+      "median_new": 17.005941107523583,
+      "median_old": 13.159980183493207
+    },
+    "ours": {
+      "hr": 0.701,
+      "lo": 0.523,
+      "hi": 0.94,
+      "error_pct": 0.5
+    }
+  },
+  {
+    "file": "synthetic_5.png",
+    "new": "Experimental",
+    "old": "Control",
+    "truth": {
+      "hr": 0.778,
+      "lo": 0.608,
+      "hi": 0.996,
+      "median_new": 15.42869963078179,
+      "median_old": 11.069520482250237
+    },
+    "ours": {
+      "hr": 0.768,
+      "lo": 0.598,
+      "hi": 0.985,
+      "error_pct": 1.3
+    }
+  },
+  {
+    "file": "synthetic_6.png",
+    "new": "Atezolizumab",
+    "old": "Chemotherapy",
+    "truth": {
+      "hr": 0.761,
+      "lo": 0.582,
+      "hi": 0.994,
+      "median_new": 14.876413053268656,
+      "median_old": 10.503368564195508
+    },
+    "ours": {
+      "hr": 0.746,
+      "lo": 0.572,
+      "hi": 0.972,
+      "error_pct": 2.0
+    }
+  },
+  {
+    "file": "synthetic_7.png",
+    "new": "Pembrolizumab",
+    "old": "Chemotherapy",
+    "truth": {
+      "hr": 0.6,
+      "lo": 0.463,
+      "hi": 0.778,
+      "median_new": 19.440147715285732,
+      "median_old": 14.601553628314043
+    },
+    "ours": {
+      "hr": 0.594,
+      "lo": 0.459,
+      "hi": 0.769,
+      "error_pct": 1.0
+    }
+  },
+  {
+    "file": "synthetic_8.png",
+    "new": "Nivolumab",
+    "old": "Docetaxel",
+    "truth": {
+      "hr": 0.508,
+      "lo": 0.357,
+      "hi": 0.724,
+      "median_new": 30.892530560864834,
+      "median_old": 16.295498136285865
+    },
+    "ours": {
+      "hr": 0.512,
+      "lo": 0.359,
+      "hi": 0.73,
+      "error_pct": 0.8
+    }
+  }
+]

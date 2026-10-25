@@ -1,0 +1,54 @@
+{
+  "model": "gemini-3.6-flash",
+  "runs": [
+    {
+      "hr": 0.59,
+      "lo": 0.44,
+      "hi": 0.79,
+      "median_nivolumab": 9.2,
+      "median_docetaxel": 6.0
+    },
+    {
+      "hr": 0.59,
+      "lo": 0.44,
+      "hi": 0.79,
+      "median_nivolumab": 9.2,
+      "median_docetaxel": 6.0
+    },
+    {
+      "hr": 0.59,
+      "lo": 0.44,
+      "hi": 0.79,
+      "median_nivolumab": 9.2,
+      "median_docetaxel": 6.0
+    },
+    {
+      "hr": 0.59,
+      "lo": 0.44,
+      "hi": 0.79,
+      "median_nivolumab": 9.2,
+      "median_docetaxel": 6.0
+    },
+    {
+      "hr": 0.59,
+      "lo": 0.44,
+      "hi": 0.79,
+      "median_nivolumab": 9.2,
+      "median_docetaxel": 6.0
+    }
+  ],
+  "truth": {
+    "hr": 0.59,
+    "lo": 0.44,
+    "hi": 0.79,
+    "median_nivolumab": 9.2,
+    "median_docetaxel": 6.0
+  },
+  "ours": {
+    "hr": 0.591,
+    "lo": 0.45,
+    "hi": 0.78,
+    "median_nivolumab": 9.2,
+    "median_docetaxel": 6.0
+  }
+}

@@ -6,3 +6,4 @@ data/*
 runs/
 .pytest_cache/
 .env
+!data/llm_test/
