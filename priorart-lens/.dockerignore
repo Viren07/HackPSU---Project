@@ -1,0 +1,13 @@
+.venv
+.git
+.env
+data
+runs
+synth
+scripts
+tests
+__pycache__
+*.pyc
+.pytest_cache
+vscode-config
+.vscode
