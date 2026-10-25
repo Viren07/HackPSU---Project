@@ -63,7 +63,30 @@ def _cluster_colors(lab_px: np.ndarray, k_max=6, merge_dist=28.0, min_frac=0.03)
     return [c for c, n_ in zip(centers, counts) if n_ / total >= min_frac]
 
 
-def extract_series(img: np.ndarray, box, legend: np.ndarray | None = None, step: int = 2):
+def _merge_by_hue(centers, max_deg: float):
+    """Merge Lab cluster centers whose hue is within max_deg (shades of one curve's color)."""
+    def hue(c):
+        rgb = cv2.cvtColor(np.uint8([[np.clip(c, 0, 255)]]), cv2.COLOR_LAB2RGB)
+        return float(cv2.cvtColor(rgb, cv2.COLOR_RGB2HSV)[0, 0, 0]) * 2  # degrees 0..360
+    groups = []
+    for c in centers:
+        h = hue(c)
+        for g in groups:
+            d = abs(h - g["h"])
+            if min(d, 360 - d) <= max_deg:
+                g["members"].append(c)
+                break
+        else:
+            groups.append({"h": h, "members": [c]})
+    # keep the most saturated member as the representative color
+    out = []
+    for g in groups:
+        out.append(max(g["members"], key=lambda c: float(np.hypot(c[1] - 128, c[2] - 128))))
+    return out, groups
+
+
+def extract_series(img: np.ndarray, box, legend: np.ndarray | None = None, step: int = 2,
+                   force_line: bool = False, merge_hue_deg: float | None = None):
     x0, y0, x1, y1 = box
     pad = 4
     crop = img[y0 + pad:y1 - pad, x0 + pad:x1 - pad]
@@ -79,10 +102,21 @@ def extract_series(img: np.ndarray, box, legend: np.ndarray | None = None, step:
         return []
 
     # assign each colored pixel to nearest center
-    C = np.array(centers)
-    d = np.linalg.norm(lab[ys, xs][:, None, :] - C[None], axis=2)
-    lbl = d.argmin(1)
-    near = d.min(1) < 40
+    groups = None
+    if merge_hue_deg:
+        centers, groups = _merge_by_hue(centers, merge_hue_deg)
+    if groups:
+        allc = [m for g in groups for m in g["members"]]
+        owner = [gi for gi, g in enumerate(groups) for _ in g["members"]]
+        d_all = np.linalg.norm(lab[ys, xs][:, None, :] - np.array(allc)[None], axis=2)
+        lbl = np.array(owner)[d_all.argmin(1)]
+        near = d_all.min(1) < 40
+        C = np.array(centers)
+    else:
+        C = np.array(centers)
+        d = np.linalg.norm(lab[ys, xs][:, None, :] - C[None], axis=2)
+        lbl = d.argmin(1)
+        near = d.min(1) < 40
 
     out = []
     for ci in range(len(C)):
@@ -97,7 +131,7 @@ def extract_series(img: np.ndarray, box, legend: np.ndarray | None = None, step:
         widths = stats[1:, cv2.CC_STAT_WIDTH]
         cw = crop.shape[1]
         # scatter: many small blobs of similar size; line: dominated by wide components
-        is_scatter = (n_cc - 1) >= 6 and widths.max() < 0.08 * cw
+        is_scatter = (not force_line) and (n_cc - 1) >= 6 and widths.max() < 0.08 * cw
         rgb = cv2.cvtColor(np.uint8([[C[ci]]]), cv2.COLOR_LAB2RGB)[0, 0]
         if is_scatter:
             keep = areas > 0.3 * np.median(areas)

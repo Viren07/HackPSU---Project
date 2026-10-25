@@ -16,13 +16,33 @@ import numpy as np
 _ocr = None
 
 
+_ocr_small = None
+
+
 def get_ocr():
+    """Reader for whole figures."""
     global _ocr
     if _ocr is None:
         from rapidocr_onnxruntime import RapidOCR
 
         _ocr = RapidOCR()
     return _ocr
+
+
+def get_ocr_small():
+    """Reader for small crops (single numbers, table cells). The default detector upscales any
+    image smaller than 736 px, which makes each tiny crop ~10x slower for no accuracy gain."""
+    global _ocr_small
+    if _ocr_small is None:
+        from rapidocr_onnxruntime import RapidOCR
+
+        _ocr_small = RapidOCR()
+        # stop the detector from upscaling small crops to 736 px, and skip the rotation classifier
+        for op in _ocr_small.text_detector.preprocess_op:
+            if hasattr(op, "limit_type"):
+                op.limit_type, op.limit_side_len = "max", 960
+        _ocr_small.use_angle_cls = False
+    return _ocr_small
 
 
 @dataclass
@@ -143,7 +163,7 @@ def _read_blobs(strip: np.ndarray, boxes, offset):
     for px_, crop in pieces:
         canvas[20:20 + crop.shape[0], px_:px_ + crop.shape[1]] = crop
     # single-glyph labels get low recognizer confidence (~0.5); accept them here
-    result, _ = get_ocr()(cv2.cvtColor(canvas, cv2.COLOR_RGB2BGR), text_score=0.3)
+    result, _ = get_ocr_small()(cv2.cvtColor(canvas, cv2.COLOR_RGB2BGR), text_score=0.3)
     texts = {i: [] for i in range(len(boxes))}
     for quad, text, _score in result or []:
         q = np.array(quad, float)

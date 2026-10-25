@@ -100,7 +100,8 @@ def km_indirect(payload: dict = Body(...)):
     try:
         a, b = payload["a"], payload["b"]
         res = indirect(a, b)
-        png = indirect_plot(a, b, res, a["treatment"], b["treatment"], payload.get("common") or a.get("control", "control"))
+        png = indirect_plot(a, b, res, a["treatment"], b["treatment"], payload.get("common") or a.get("control", "control"),
+                            payload.get("event") or "death")
         return {"ok": True, "result": res, "plot_png": base64.b64encode(png).decode()}
     except Exception as e:
         return JSONResponse({"ok": False, "error": str(e)}, status_code=422)

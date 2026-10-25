@@ -123,7 +123,8 @@ def indirect(a: dict, b: dict) -> dict:
             "log_hr": float(d), "se": se, "p": float(2 * st.norm.sf(abs(z)))}
 
 
-def indirect_plot(a: dict, b: dict, res: dict, name_a: str, name_b: str, common: str) -> bytes:
+def indirect_plot(a: dict, b: dict, res: dict, name_a: str, name_b: str, common: str,
+                  event: str = "death") -> bytes:
     """Three rows: A vs common, B vs common (from the trials), and A vs B (indirect)."""
     rows = [(f"{name_a} vs {common}", a, "#1f4e9c", "s"), (f"{name_b} vs {common}", b, "#2a9d8f", "s")]
     fig, ax = plt.subplots(figsize=(10, 3.4), dpi=110)
@@ -146,11 +147,11 @@ def indirect_plot(a: dict, b: dict, res: dict, name_a: str, name_b: str, common:
     ax.get_xaxis().set_major_formatter(matplotlib.ticker.ScalarFormatter())
     ax.get_xaxis().set_minor_formatter(matplotlib.ticker.NullFormatter())
     ax.set_yticks([3, 2, 1])
-    ax.set_yticklabels([rows[0][0], rows[1][0], f"{name_a} vs {name_b} (indirect)"])
+    ax.set_yticklabels([rows[0][0], rows[1][0], f"{name_a} vs {name_b} (through {common})"])
     ax.set_ylim(0.4, 3.6)
     ax.spines[["top", "right", "left"]].set_visible(False)
     ax.tick_params(axis="y", length=0)
-    ax.set_xlabel("Hazard ratio for death (log scale)   ← first drug better | second drug better →")
+    ax.set_xlabel(f"Hazard ratio for {event} (log scale).  Below 1: the first-named drug in that row is better")
     ax.set_title(f"Comparing {name_a} and {name_b} through their shared {common} arm", fontsize=11, loc="left")
     fig.subplots_adjust(left=0.34, right=0.78)
     buf = io.BytesIO()

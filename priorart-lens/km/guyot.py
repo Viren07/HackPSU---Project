@@ -150,4 +150,18 @@ def reconstruct(t_s, s, t_risk, n_risk, tot_events=None, max_iter=100):
     if remaining > 0:
         times += [t_s[-1]] * remaining
         events += [0] * remaining
-    return np.array(times, float), np.array(events, int)
+    times, events = np.array(times, float), np.array(events, int)
+    # rounding inside the intervals can leave the total a patient or two off the published
+    # starting count; fix it by adjusting censored patients at the end of follow-up, never deaths
+    n0 = int(n_risk[0])
+    diff = len(times) - n0
+    if diff > 0:
+        cens_idx = np.where(events == 0)[0]
+        drop = cens_idx[np.argsort(-times[cens_idx])][:diff]
+        keep = np.ones(len(times), bool)
+        keep[drop] = False
+        times, events = times[keep], events[keep]
+    elif diff < 0:
+        times = np.r_[times, [t_s[-1]] * (-diff)]
+        events = np.r_[events, [0] * (-diff)]
+    return times, events

@@ -58,6 +58,7 @@
   td.num, th.num { text-align: right; }
   .verdict { font-size: 18px; line-height: 1.45; margin: 4px 0 10px; }
   .tablewrap { overflow-x: auto; }
+  select.sel { font: inherit; color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; min-width: 0; }
 </style>
 </head>
 <body>
@@ -65,12 +66,12 @@
   <header>
     <h1>PriorArt <span>Lens</span></h1>
     <p class="tag">Cancer trials publish survival curves, not patient data. Photograph the curves, rebuild the patients,
-      check the result against the paper, and pool trials into a meta-analysis.</p>
+      check the result against the paper, and compare new treatments that were each tested against the same old one.</p>
     <div class="steps">
       <span class="pill on" id="p1">1 · Read figure</span>
       <span class="pill" id="p2">2 · Check numbers</span>
       <span class="pill" id="p3">3 · Rebuild patients</span>
-      <span class="pill" id="p4">4 · Pool trials</span>
+      <span class="pill" id="p4">4 · Compare treatments</span>
     </div>
   </header>
 
@@ -99,6 +100,7 @@
         <div id="readWarnings"></div>
         <p class="small muted" style="margin-top:0">Numbers at risk come from the table under the figure. Fix any
           misread number, then pick which arm is the new treatment.</p>
+        <div id="endpointBox" class="arm"></div>
         <div id="arms"></div>
         <button class="btn" id="rebuild">Rebuild patients &amp; compute hazard ratio</button>
       </div>
@@ -116,35 +118,58 @@
         <div id="pubCompare" style="margin-top:10px"></div>
         <div class="kv" id="checks"></div>
         <div style="margin-top:14px" class="row">
-          <button class="btn alt" id="addTrial">Add to meta-analysis</button>
+          <button class="btn alt" id="addTrial">Save this study</button>
         </div>
       </div>
       <div><img class="fig" id="rebuiltImg" alt="Survival curves rebuilt from reconstructed patients"></div>
     </div>
   </section>
 
-  <!-- 4. meta-analysis -->
+  <!-- 4. saved studies -->
   <section class="card">
-    <h2>Meta-analysis</h2>
+    <h2>Your studies</h2>
     <div class="tablewrap"><table id="trialTable"></table></div>
     <details style="margin:10px 0">
-      <summary class="small muted" style="cursor:pointer">Add a trial by its reported hazard ratio instead</summary>
+      <summary class="small muted" style="cursor:pointer">Add a study by its reported hazard ratio (when there is no usable graph)</summary>
       <div class="row" style="margin-top:10px">
-        <label class="f" style="flex:1 1 160px">Name <input type="text" id="mName"></label>
-        <label class="f" style="flex:0 1 100px">HR <input type="number" id="mHr" step="0.01"></label>
-        <label class="f" style="flex:0 1 100px">95% CI low <input type="number" id="mLo" step="0.01"></label>
-        <label class="f" style="flex:0 1 100px">95% CI high <input type="number" id="mHi" step="0.01"></label>
+        <label class="f" style="flex:1 1 140px">Study name <input type="text" id="mName"></label>
+        <label class="f" style="flex:1 1 130px">New treatment <input type="text" id="mTreat"></label>
+        <label class="f" style="flex:1 1 130px">Old treatment <input type="text" id="mCtrl" placeholder="e.g. Docetaxel"></label>
+        <label class="f" style="flex:1 1 150px">Outcome <select id="mEnd" class="sel"></select></label>
+        <label class="f" style="flex:0 1 90px">HR <input type="number" id="mHr" step="0.01"></label>
+        <label class="f" style="flex:0 1 90px">95% CI low <input type="number" id="mLo" step="0.01"></label>
+        <label class="f" style="flex:0 1 90px">95% CI high <input type="number" id="mHi" step="0.01"></label>
         <button class="btn ghost" id="mAdd">Add</button>
       </div>
     </details>
+    <button class="btn ghost" id="clearBtn">Clear all studies</button>
+  </section>
+
+  <!-- 5. compare two new treatments -->
+  <section class="card">
+    <h2>Compare two new treatments</h2>
+    <p class="small muted" style="margin-top:0">Pick two studies that tested <b>different new drugs</b> against the
+      <b>same old treatment</b>. No trial compared them head to head; we compare them through the shared treatment.</p>
     <div class="row">
-      <button class="btn" id="poolBtn">Pool trials</button>
-      <button class="btn ghost" id="clearBtn">Clear all</button>
+      <label class="f" style="flex:1 1 220px">Study A <select id="cmpA" class="sel"></select></label>
+      <label class="f" style="flex:1 1 220px">Study B <select id="cmpB" class="sel"></select></label>
+      <button class="btn" id="cmpBtn">Compare</button>
     </div>
-    <div id="poolOut" class="hidden" style="margin-top:14px">
-      <p class="verdict" id="verdict"></p>
-      <img class="fig" style="max-width:900px;margin:0 auto" id="forest" alt="Forest plot of all trials and the pooled estimate">
+    <div id="cmpWarn"></div>
+    <div id="cmpOut" class="hidden" style="margin-top:14px">
+      <p class="verdict" id="cmpVerdict"></p>
+      <p class="small muted" id="cmpNote"></p>
+      <img class="fig" style="max-width:900px;margin:0 auto" id="cmpImg" alt="The two studies and the indirect comparison">
     </div>
+    <details style="margin-top:16px">
+      <summary class="small muted" style="cursor:pointer">Combine several studies of the <b>same</b> drug (pooling)</summary>
+      <p class="small muted">Only pool studies that tested the same new treatment against the same old one.</p>
+      <button class="btn ghost" id="poolBtn">Pool all studies</button>
+      <div id="poolOut" class="hidden" style="margin-top:14px">
+        <p class="verdict" id="verdict"></p>
+        <img class="fig" style="max-width:900px;margin:0 auto" id="forest" alt="Forest plot of all studies and the pooled estimate">
+      </div>
+    </details>
   </section>
   <p class="small muted" style="margin:24px 0">Reconstruction: Guyot et al. 2012 (BMC Med Res Methodol 12:9). Pooling: DerSimonian-Laird random effects.
     Reconstructed data approximates, not replaces, the original patient data. <a href="/chart" style="color:inherit">General chart reader</a></p>
@@ -159,6 +184,11 @@ const save = () => { try { localStorage.setItem("pal_trials", JSON.stringify(tri
 const rgb = (c) => `rgb(${c[0]},${c[1]},${c[2]})`;
 const f2 = (v) => (v == null ? "n/a" : (+v).toFixed(2));
 const step = (n) => ["p1", "p2", "p3", "p4"].forEach((p, i) => $(p).classList.toggle("on", i < n));
+const ENDPOINTS = { os: "Overall survival", pfs: "Progression-free survival", dfs: "Disease-free survival",
+                    efs: "Event-free survival", rfs: "Relapse-free survival" };
+const endpointOptions = (sel) => `<option value="">Choose the outcome...</option>` +
+  Object.entries(ENDPOINTS).map(([k, v]) => `<option value="${k}" ${k === sel ? "selected" : ""}>${v}</option>`).join("");
+const eventWord = (ep) => ep === "os" ? "death" : ep === "pfs" ? "progression or death" : "the event";
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;"}[c]));
 
 $("snap").onclick = () => $("file").click();
@@ -188,6 +218,13 @@ function renderReview() {
   $("review").classList.remove("hidden");
   $("overlay").src = "data:image/png;base64," + current.overlay_png;
   $("readWarnings").innerHTML = (current.warnings || []).map(w => `<div class="warnbox">${esc(w)}</div>`).join("");
+  const ph = current.printed_hr;
+  if (ph && !$("pubHr").value) $("pubHr").value = ph.hr;
+  $("endpointBox").innerHTML = `
+    <label class="f">What does this curve measure?
+      <select id="endpointSel" class="sel">${endpointOptions(current.endpoint || "")}</select></label>
+    <div class="small muted" style="margin-top:6px">${current.endpoint ? "Detected from the " + esc(current.endpoint_evidence) + "." : "Not detected on the figure; please choose."}
+      ${ph ? `<br>Hazard ratio printed on the figure: <b>${f2(ph.hr)}</b>${ph.lo ? ` (${f2(ph.lo)} to ${f2(ph.hi)})` : ""}. Used to check our result.` : ""}</div>`;
   // build a shared time grid from the x ticks so a missed count can be filled in
   const ticks = current.axis.x_ticks.slice().sort((a, b) => a - b);
   const stepT = ticks.length > 1 ? ticks[1] - ticks[0] : 0;
@@ -222,6 +259,9 @@ $("rebuild").onclick = async () => {
     a.t_risk = pairs.map(p => p[0]);
     a.n_risk = pairs.map(p => p[1]);
   });
+  const ep = $("endpointSel") ? $("endpointSel").value : "";
+  if (!ep) { $("status").textContent = "Choose what the curve measures (for example overall survival) first."; return; }
+  current.endpoint_selected = ep;
   const ti = parseInt((document.querySelector('input[name="treat"]:checked') || {value: 0}).value, 10);
   const pub = parseFloat($("pubHr").value);
   $("rebuild").disabled = true;
@@ -242,18 +282,21 @@ $("rebuild").onclick = async () => {
 function renderResult() {
   const d = analysis;
   $("result").classList.remove("hidden");
-  $("hrLabel").textContent = `Hazard ratio, ${d.treatment} vs ${d.control}`;
+  const ep = current.endpoint_selected;
+  $("hrLabel").textContent = `Hazard ratio for ${eventWord(ep)} (${ENDPOINTS[ep]}), ${d.treatment} vs ${d.control}`;
   $("hrBig").textContent = f2(d.hr.hr);
   $("hrCi").textContent = `95% CI ${f2(d.hr.lo)} to ${f2(d.hr.hi)} · p = ${d.hr.p < 0.001 ? "<0.001" : d.hr.p.toFixed(3)}`;
   if (d.published_hr) {
     const e = d.hr_error_pct, c = e <= 5 ? "good" : e <= 10 ? "warn" : "bad";
-    $("pubCompare").innerHTML = `Paper reports <b>${f2(d.published_hr)}</b>. Ours is <b class="${c}">${e}% off</b>.`;
+    $("pubCompare").innerHTML = `Paper reports <b>${f2(d.published_hr)}</b>. Ours is <b class="${c}">${e}% off</b>.` +
+      (d.agrees_with_paper === false ? `<div class="warnbox">That is a large gap. Usually a misread at-risk number or a curve
+        picked up from the wrong line. Check the numbers above before saving this study.</div>` : "");
   } else $("pubCompare").innerHTML = `<span class="muted small">Enter the paper's hazard ratio above to check our accuracy.</span>`;
   const T = d.checks.treatment, C = d.checks.control;
   const pm = (x) => x == null ? "n/a" : `<span class="${x >= .9 ? "good" : x >= .75 ? "warn" : "bad"}">${Math.round(x * 100)}%</span>`;
   const gap = (x) => `<span class="${x <= .02 ? "good" : x <= .05 ? "warn" : "bad"}">${(x * 100).toFixed(1)} pts</span>`;
   $("checks").innerHTML = `
-    <span class="muted">Patients rebuilt</span><b>${T.n_patients} + ${C.n_patients} (${T.n_events + C.n_events} deaths)</b>
+    <span class="muted">Patients rebuilt</span><b>${T.n_patients} + ${C.n_patients} (${T.n_events + C.n_events} ${current.endpoint_selected === "os" ? "deaths" : "events"})</b>
     <span class="muted">Median survival</span><b>${f2(T.median)} vs ${f2(C.median)}</b>
     <span class="muted">Curve fit (avg gap)</span><b>${gap(T.curve_mean_gap)} · ${gap(C.curve_mean_gap)}</b>
     <span class="muted">Pixel match</span><b>${pm(T.pixel_match)} · ${pm(C.pixel_match)}</b>`;
@@ -262,38 +305,121 @@ function renderResult() {
 
 $("addTrial").onclick = () => {
   if (!analysis) return;
-  const name = $("trialName").value.trim() || `Trial ${trials.length + 1}`;
+  const name = uniqueName($("trialName").value.trim() || `${analysis.treatment} study`);
   trials.push({ name, hr: analysis.hr.hr, lo: analysis.hr.lo, hi: analysis.hr.hi, log_hr: analysis.hr.log_hr,
                 se: analysis.hr.se, source: "rebuilt", treatment: analysis.treatment, control: analysis.control,
-                published_hr: analysis.published_hr || null });
+                published_hr: analysis.published_hr || null, endpoint: current.endpoint_selected,
+                agrees: analysis.agrees_with_paper !== false });
   save(); renderTrials(); step(4);
   $("trialName").value = ""; $("pubHr").value = "";
   $("review").classList.add("hidden"); $("result").classList.add("hidden");
-  $("status").textContent = `Added ${name}. Add another trial, or pool them below.`;
+  $("status").textContent = `Saved ${name}. Add another study, or compare treatments below.`;
 };
 
 $("mAdd").onclick = () => {
   const hr = parseFloat($("mHr").value), lo = parseFloat($("mLo").value), hi = parseFloat($("mHi").value);
   if (!(hr > 0 && lo > 0 && hi > lo)) { alert("Enter HR and a valid 95% CI."); return; }
-  trials.push({ name: $("mName").value.trim() || `Trial ${trials.length + 1}`, hr, lo, hi, log_hr: Math.log(hr),
-                se: (Math.log(hi) - Math.log(lo)) / (2 * 1.96), source: "reported" });
+  const treatment = $("mTreat").value.trim(), control = $("mCtrl").value.trim();
+  if (!treatment || !control) { alert("Enter the new and old treatment names."); return; }
+  const endpoint = $("mEnd").value;
+  if (!endpoint) { alert("Choose the outcome (for example overall survival)."); return; }
+  trials.push({ name: uniqueName($("mName").value.trim() || `${treatment} study`), hr, lo, hi, log_hr: Math.log(hr),
+                se: (Math.log(hi) - Math.log(lo)) / (2 * 1.96), source: "reported", treatment, control, endpoint, agrees: true });
   save(); renderTrials();
-  ["mName", "mHr", "mLo", "mHi"].forEach(i => $(i).value = "");
+  ["mName", "mTreat", "mCtrl", "mHr", "mLo", "mHi"].forEach(i => $(i).value = "");
 };
 
+function uniqueName(base) {
+  let name = base, k = 2;
+  while (trials.some(t => t.name === name)) name = `${base} (${k++})`;
+  return name;
+}
+
+function renderSelects() {
+  const opts = trials.map((t, i) => `<option value="${i}">${esc(t.name)}: ${esc(t.treatment || "?")} vs ${esc(t.control || "?")} (${t.endpoint ? t.endpoint.toUpperCase() : "?"})</option>`).join("");
+  ["cmpA", "cmpB"].forEach((id, j) => {
+    const prev = $(id).value;
+    $(id).innerHTML = opts;
+    if (prev !== "" && +prev < trials.length) $(id).value = prev; else if (trials.length > j) $(id).value = j;
+  });
+}
+
 function renderTrials() {
-  if (!trials.length) { $("trialTable").innerHTML = `<tr><td class="muted">No trials yet. Add one above.</td></tr>`; return; }
-  $("trialTable").innerHTML = `<tr><th>Trial</th><th class="num">HR (95% CI)</th><th class="num">Paper</th><th>Source</th><th></th></tr>` +
-    trials.map((t, i) => `<tr><td>${esc(t.name)}</td><td class="num">${f2(t.hr)} (${f2(t.lo)}-${f2(t.hi)})</td>
+  renderSelects();
+  if (!trials.length) { $("trialTable").innerHTML = `<tr><td class="muted">No studies yet. Add one above.</td></tr>`; return; }
+  $("trialTable").innerHTML = `<tr><th>Study</th><th>Outcome</th><th>New treatment</th><th>Old treatment</th><th class="num">HR (95% CI)</th><th class="num">Paper</th><th>Source</th><th></th></tr>` +
+    trials.map((t, i) => `<tr><td>${esc(t.name)}${t.agrees === false ? ` <span class="bad small">(check: far from paper)</span>` : ""}</td>
+      <td class="small">${t.endpoint ? ENDPOINTS[t.endpoint] : `<span class="bad">unknown</span>`}</td><td>${esc(t.treatment || "-")}</td><td>${esc(t.control || "-")}</td><td class="num">${f2(t.hr)} (${f2(t.lo)}-${f2(t.hi)})</td>
       <td class="num">${t.published_hr ? f2(t.published_hr) : "-"}</td><td class="small muted">${t.source}</td>
       <td class="num"><button class="btn ghost small" style="padding:4px 10px" data-del="${i}">Remove</button></td></tr>`).join("");
   document.querySelectorAll("[data-del]").forEach(b => b.onclick = () => { trials.splice(+b.dataset.del, 1); save(); renderTrials(); });
 }
 
-$("clearBtn").onclick = () => { trials = []; save(); renderTrials(); $("poolOut").classList.add("hidden"); };
+$("clearBtn").onclick = () => { trials = []; save(); renderTrials(); $("poolOut").classList.add("hidden"); $("cmpOut").classList.add("hidden"); };
+
+const key = (s) => String(s || "").toLowerCase().replace(/[^a-z]/g, "");
+
+const clearCompare = () => { $("cmpWarn").innerHTML = ""; $("cmpOut").classList.add("hidden"); $("cmpImg").removeAttribute("src"); };
+$("cmpA").onchange = clearCompare;
+$("cmpB").onchange = clearCompare;
+
+$("cmpBtn").onclick = async () => {
+  clearCompare();
+  if (trials.length < 2) { $("cmpWarn").innerHTML = `<div class="warnbox">Save at least two studies first.</div>`; return; }
+  const A = trials[+$("cmpA").value], B = trials[+$("cmpB").value];
+  if (!A || !B || A === B) { $("cmpWarn").innerHTML = `<div class="warnbox">Pick two different studies.</div>`; return; }
+  if (key(A.treatment) === key(B.treatment)) {
+    $("cmpWarn").innerHTML = `<div class="warnbox">Both studies test ${esc(A.treatment)}. To combine studies of the same drug, use pooling below.</div>`;
+    return;
+  }
+  if (!A.endpoint || !B.endpoint) {
+    $("cmpWarn").innerHTML = `<div class="warnbox">One of these studies has no outcome set. Re-add it and choose what its curve measures.</div>`;
+    return;
+  }
+  if (A.endpoint !== B.endpoint) {
+    $("cmpWarn").innerHTML = `<div class="warnbox">These studies measure different outcomes (${ENDPOINTS[A.endpoint]} vs ${ENDPOINTS[B.endpoint]}).
+      Comparing them would mix two different things, so we stop here. Use the same outcome from both papers.</div>`;
+    return;
+  }
+  if (key(A.control) !== key(B.control)) {
+    $("cmpWarn").innerHTML = `<div class="warnbox">These studies used different old treatments (${esc(A.control)} vs ${esc(B.control)}),
+      so there is no shared treatment to compare through. If they are actually the same drug, edit the names so they match.</div>`;
+    return;
+  }
+  const r = await fetch("/api/km/indirect", { method: "POST", headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({ a: A, b: B, common: A.control, event: eventWord(A.endpoint) }) });
+  const d = await r.json();
+  if (!d.ok) { $("cmpWarn").innerHTML = `<div class="warnbox">${esc(d.error)}</div>`; return; }
+  const x = d.result, a = esc(A.treatment), b = esc(B.treatment), ev = eventWord(A.endpoint);
+  const flagged = [A, B].filter(t => t.agrees === false).map(t => esc(t.name));
+  const ci = `HR ${f2(x.hr)}, 95% CI ${f2(x.lo)} to ${f2(x.hi)}`;
+  let v;
+  if (x.hi < 1) v = `<b>${a}</b> had a <b>${Math.round((1 - x.hr) * 100)}% lower</b> risk of ${ev} than <b>${b}</b> (${ci}). The difference is statistically clear.`;
+  else if (x.lo > 1) v = `<b>${b}</b> had a <b>${Math.round((1 - 1 / x.hr) * 100)}% lower</b> risk of ${ev} than <b>${a}</b> (${ci}). The difference is statistically clear.`;
+  else {
+    const better = x.hr < 1 ? a : b, pct = Math.round((x.hr < 1 ? 1 - x.hr : 1 - 1 / x.hr) * 100);
+    v = `The estimate leans toward <b>${better}</b> (about ${pct}% lower risk of ${ev}), but the 95% range includes "no difference" (${ci}), so the data <b>cannot confirm</b> which is better.`;
+  }
+  $("cmpVerdict").innerHTML = v + `<div class="small muted" style="margin-top:6px">Outcome compared: <b>${ENDPOINTS[A.endpoint]}</b>
+    in both studies (${esc(A.name)} and ${esc(B.name)}).</div>`;
+  $("cmpNote").innerHTML = `How this works: each drug was tested against ${esc(A.control)} in its own trial, so we compare them through that shared ${esc(A.control)} group.
+    Method: indirect treatment comparison (Bucher, 1997), as used in health technology assessment. It assumes the two trials enrolled similar patients.` +
+    (flagged.length ? `<div class="warnbox">Our rebuilt result for ${flagged.join(" and ")} was far from the paper's. Treat this comparison with caution.</div>` : "");
+  $("cmpImg").src = "data:image/png;base64," + d.plot_png;
+  $("cmpOut").classList.remove("hidden");
+  step(4);
+};
 
 $("poolBtn").onclick = async () => {
   if (trials.length < 2) { $("status").textContent = "Add at least two trials to pool."; return; }
+  const sig = (t) => [key(t.treatment), key(t.control), t.endpoint || "?"].join("|");
+  if (new Set(trials.map(sig)).size > 1) {
+    $("poolOut").classList.remove("hidden");
+    $("verdict").innerHTML = `<div class="warnbox">Pooling only makes sense for studies of the <b>same</b> new treatment vs the <b>same</b> old one,
+      with the <b>same</b> outcome. Your saved studies mix different drugs or outcomes. Use "Compare two new treatments" instead, or remove studies so they all match.</div>`;
+    $("forest").removeAttribute("src");
+    return;
+  }
   const tr = trials.find(t => t.treatment);
   const title = tr ? `Overall survival: ${tr.treatment} vs ${tr.control}` : "Overall survival: treatment vs control";
   const r = await fetch("/api/km/pool", { method: "POST", headers: {"Content-Type": "application/json"},
@@ -312,6 +438,7 @@ $("poolBtn").onclick = async () => {
   step(4);
 };
 
+$("mEnd").innerHTML = endpointOptions("os");
 renderTrials();
 </script>
 </body>

@@ -45,9 +45,16 @@ def read_trial(img_rgb: np.ndarray, do_rectify: bool = True) -> dict:
     for a in arms:
         if not a.t_risk or a.t_risk[0] > 1e-6:
             warnings.append(f"'{a.name}': the count at time 0 is missing. Please fill it in.")
+    if meta.get("x_shift_note"):
+        warnings.append(meta["x_shift_note"])
+    if meta.get("endpoint") is None:
+        warnings.append("Could not tell what this curve measures. Please choose the outcome below.")
     xf = meta["xfit"]
     return {
         "ok": True,
+        "endpoint": meta.get("endpoint"),
+        "endpoint_evidence": meta.get("endpoint_evidence"),
+        "printed_hr": meta.get("printed_hr"),
         "rectified": meta["rectified"],
         "treatment_index": guess_treatment_index(arms) if arms else 0,
         "arms": [{
@@ -127,6 +134,8 @@ def analyze_trial(read: dict, treatment_index: int | None = None, published_hr: 
     if published_hr:
         res["published_hr"] = published_hr
         res["hr_error_pct"] = round(abs(hr["hr"] - published_hr) / published_hr * 100, 1)
+        # agreement check: a big gap usually means a misread at-risk number or curve
+        res["agrees_with_paper"] = res["hr_error_pct"] <= 10
     res["rebuilt_png"] = _rebuilt_figure(curves, ipd, order, hr)
     return res
 
