@@ -14,6 +14,21 @@ import matplotlib
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
+
+# kraft-paper chart theme to match the web page (applied only to our own charts)
+KRAFT = {
+    "figure.facecolor": "#f2e4d0", "axes.facecolor": "#f2e4d0", "savefig.facecolor": "#f2e4d0",
+    "text.color": "#36261a", "axes.labelcolor": "#36261a", "axes.edgecolor": "#6b4c34",
+    "xtick.color": "#36261a", "ytick.color": "#36261a", "legend.frameon": False,
+}
+
+
+def kraft(fn):
+    def wrapped(*a, **k):
+        with plt.rc_context(KRAFT):
+            return fn(*a, **k)
+    wrapped.__name__, wrapped.__doc__ = fn.__name__, fn.__doc__
+    return wrapped
 import numpy as np  # noqa: E402
 
 from pipeline.verify import compare  # noqa: E402
@@ -140,6 +155,7 @@ def analyze_trial(read: dict, treatment_index: int | None = None, published_hr: 
     return res
 
 
+@kraft
 def _rebuilt_figure(curves, ipd, order, hr) -> str:
     fig, ax = plt.subplots(figsize=(7, 4.2), dpi=110)
     for role in ("treatment", "control"):

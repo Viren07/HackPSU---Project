@@ -4,75 +4,134 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>PriorArt Lens</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gabarito:wght@600;700;800;900&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
+  /* Kraft-board design language: a tan paper surface, ink-brown type, and depth made
+     entirely from layered highlights (warm light, top-left) and shadows (bottom-right). */
   :root {
-    --bg: #f5f4ef; --panel: #ffffff; --ink: #1a1c21; --muted: #676b74; --line: #e2e0d8;
-    --accent: #1f4e9c; --accent2: #d1495b; --good: #1f8a4c; --warn: #a96500; --bad: #c62828; --soft: #eef2f9;
-  }
-  @media (prefers-color-scheme: dark) {
-    :root { --bg: #111317; --panel: #1a1d23; --ink: #ecebe6; --muted: #9ba0aa; --line: #2b2f37;
-            --accent: #7fa7ec; --accent2: #f07a8a; --good: #4cc38a; --warn: #f0b04a; --bad: #ef6b6b; --soft: #1f2633; }
+    color-scheme: light;
+    --board: #d4b08f;        /* the paper surface */
+    --board-hi: #ddbe9f;     /* slightly lifted surface (inputs, hover) */
+    --ink: #36261a;          /* text */
+    --cut: #6b4c34;          /* pressed-in text */
+    --ply: #47331f;          /* dark board seen through a cut-out */
+    --muted: #6e5440;
+    --line: rgba(54, 38, 26, .18);
+    --hi: rgba(247, 232, 210, .8);      /* edge catching the light */
+    --sh: rgba(31, 20, 11, .22);        /* contact shadow */
+    --sh2: rgba(31, 20, 11, .26);       /* cast shadow */
+    --good: #3e6a24; --warn: #8a5a12; --bad: #9b2f1f;
+    --noise: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .21 0 0 0 0 .15 0 0 0 0 .10 0 0 0 .55 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)' opacity='.35'/%3E%3C/svg%3E");
+    --raised: -1px -1px 0 var(--hi), 1px 1px 0 var(--sh), 3px 5px 6px rgba(31,20,11,.2), 12px 18px 28px var(--sh2);
+    --raised-sm: -1px -1px 0 var(--hi), 1px 1px 0 var(--sh), 2px 3px 5px rgba(31,20,11,.2);
+    --inset: inset 4px 6px 10px rgba(31,20,11,.30), inset 1px 1px 2px rgba(31,20,11,.35), inset -1px -1px 0 rgba(247,232,210,.85);
+    --ply-inset: inset 7px 10px 16px rgba(31,20,11,.72), inset 2px 2px 3px rgba(31,20,11,.55), 1px 1px 0 rgba(247,232,210,.85), -1px -1px 0 rgba(31,20,11,.25);
   }
   * { box-sizing: border-box; }
-  body { margin: 0; background: var(--bg); color: var(--ink);
-         font: 15px/1.5 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; }
-  .wrap { max-width: 1120px; margin: 0 auto; padding: 0 16px; }
-  header { padding: 22px 0 6px; }
-  h1 { margin: 0; font-size: 23px; letter-spacing: -0.01em; }
-  h1 span { color: var(--accent2); }
-  .tag { color: var(--muted); margin: 2px 0 0; max-width: 720px; }
-  .steps { display: flex; gap: 8px; flex-wrap: wrap; margin: 14px 0 4px; }
-  .pill { font-size: 12px; padding: 4px 10px; border-radius: 99px; background: var(--soft); color: var(--muted); }
-  .pill.on { background: var(--accent); color: #fff; }
-  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 16px; margin: 14px 0; min-width: 0; }
-  .card h2 { margin: 0 0 10px; font-size: 13px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
-  .row { display: flex; gap: 12px; flex-wrap: wrap; align-items: end; }
-  label.f { display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: var(--muted); }
-  input[type=text], input[type=number] { font: inherit; color: var(--ink); background: var(--bg); border: 1px solid var(--line);
-                                         border-radius: 8px; padding: 8px 10px; min-width: 0; }
-  .btn { appearance: none; border: 0; border-radius: 10px; padding: 11px 16px; font: inherit; font-weight: 600;
-         background: var(--accent); color: #fff; cursor: pointer; }
-  .btn.alt { background: var(--accent2); }
-  .btn.ghost { background: transparent; color: var(--ink); border: 1px solid var(--line); }
-  .btn:disabled { opacity: .5; cursor: default; }
+  html { background: var(--board); }
+  body { margin: 0; color: var(--ink); background: var(--board) var(--noise);
+         font: 16px/1.55 "Instrument Sans", "Segoe UI", Arial, sans-serif; letter-spacing: -0.005em; }
+  .wrap { max-width: 1120px; margin: 0 auto; padding: 0 20px 40px; }
+
+  /* top bar: a strip of board lying on the page */
+  .bar { position: sticky; top: 0; z-index: 5; background: var(--board) var(--noise);
+         box-shadow: 0 1px 0 rgba(247,232,210,.7), 0 8px 18px rgba(31,20,11,.28); }
+  .bar-in { max-width: 1120px; margin: 0 auto; padding: 14px 20px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+  .brand { font: 800 21px/1 Gabarito, Arial, sans-serif; text-transform: uppercase; letter-spacing: .02em;
+           text-shadow: 1px 1px 0 rgba(247,232,210,.75); margin: 0; }
+  .steps { display: flex; gap: 8px; flex-wrap: wrap; margin-left: auto; }
+  .pill { font: 600 12px/1 "Instrument Sans", sans-serif; letter-spacing: .06em; text-transform: uppercase;
+          padding: 8px 11px; border-radius: 6px; color: var(--muted); box-shadow: var(--inset); }
+  .pill.on { color: var(--board); background: var(--ply) var(--noise); box-shadow: var(--ply-inset); }
+
+  /* hero: one line pressed out of a cut-out, one line pressed into the board */
+  .hero { padding: 42px 0 18px; }
+  .plate { display: inline-block; background: var(--ply) var(--noise); border-radius: 8px; padding: 6px 22px 2px; box-shadow: var(--ply-inset); margin-bottom: 10px; }
+  .raised, .cut { font: 900 clamp(40px, 8.4vw, 104px)/.95 Gabarito, Arial, sans-serif; text-transform: uppercase; letter-spacing: -.005em; display: block; }
+  .raised { color: var(--board);
+            text-shadow: -1px -1px 0 rgba(247,232,210,.6), 1px 2px 0 rgba(31,20,11,.7), 3px 5px 4px rgba(31,20,11,.55), 10px 16px 22px rgba(31,20,11,.62); }
+  .cut { color: var(--cut); text-shadow: 1px 1px 0 rgba(247,232,210,.9), -1px -1px 0 rgba(31,20,11,.45); }
+  .tag { max-width: 740px; margin: 22px 0 0; font-size: 18px; line-height: 1.55; }
+
+  /* cards: sheets of board raised off the surface */
+  .card { background: var(--board) var(--noise); border-radius: 6px; padding: 22px; margin: 22px 0; min-width: 0; box-shadow: var(--raised); }
+  .card h2 { margin: 0 0 14px; font: 800 19px/1.05 Gabarito, Arial, sans-serif; text-transform: uppercase; letter-spacing: .02em;
+             color: var(--cut); text-shadow: 1px 1px 0 rgba(247,232,210,.9), -1px -1px 0 rgba(31,20,11,.45); }
+  .row { display: flex; gap: 14px; flex-wrap: wrap; align-items: end; }
+  label.f { display: flex; flex-direction: column; gap: 6px; font-size: 13px; font-weight: 600; color: var(--muted); }
+
+  /* inputs: little wells pressed into the board */
+  input[type=text], input[type=number], select.sel {
+    font: inherit; font-size: 15px; color: var(--ink); background: var(--board-hi); border: 0; border-radius: 6px;
+    padding: 10px 12px; min-width: 0; box-shadow: var(--inset); outline: none; }
+  input:focus-visible, select:focus-visible { box-shadow: var(--inset), 0 0 0 2px var(--ink); }
+  input[type=checkbox] { accent-color: var(--ink); }
+
+  /* buttons: raised tabs of board; the primary one is cut from the dark ply */
+  .btn { appearance: none; border: 0; border-radius: 6px; padding: 13px 22px; font: 600 15px/1 "Instrument Sans", sans-serif;
+         letter-spacing: .01em; cursor: pointer; color: var(--board); background: var(--ink) var(--noise);
+         box-shadow: -1px -1px 0 rgba(247,232,210,.5), 2px 3px 0 rgba(31,20,11,.55), 6px 10px 16px rgba(31,20,11,.35);
+         transition: transform .12s ease, box-shadow .12s ease; }
+  .btn:hover { transform: translate(-1px, -1px); }
+  .btn:active { transform: translate(2px, 3px); box-shadow: inset 2px 3px 6px rgba(0,0,0,.45); }
+  .btn.alt { background: var(--cut) var(--noise); }
+  .btn.ghost { color: var(--ink); background: var(--board) var(--noise); box-shadow: var(--raised-sm); }
+  .btn.ghost:active { box-shadow: var(--inset); }
+  .btn:disabled { opacity: .55; cursor: default; transform: none; }
+
   .muted { color: var(--muted); }
   .small { font-size: 13px; }
-  .grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 14px; }
-  img.fig { width: 100%; border-radius: 8px; display: block; background: #fff; }
+  .grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; }
+  /* figures sit in a window cut through the board */
+  img.fig { width: 100%; display: block; background: #f2e4d0; border-radius: 3px; border: 10px solid var(--ply);
+            box-shadow: var(--ply-inset); }
   .hidden { display: none !important; }
-  #status { min-height: 1.5em; color: var(--muted); margin: 6px 2px; }
-  .warnbox { background: color-mix(in srgb, var(--warn) 14%, transparent); border-radius: 10px; padding: 9px 12px; margin: 8px 0; font-size: 14px; }
-  .arm { border: 1px solid var(--line); border-radius: 12px; padding: 12px; margin: 10px 0; }
+  #status { min-height: 1.5em; color: var(--muted); margin: 10px 2px 0; font-weight: 500; }
+  .warnbox { border-radius: 6px; padding: 11px 14px; margin: 10px 0; font-size: 14px; background: rgba(155,47,31,.08);
+             box-shadow: var(--inset); color: var(--ink); }
+  .arm { border-radius: 6px; padding: 14px; margin: 12px 0; box-shadow: var(--raised-sm); background: var(--board) var(--noise); }
   .arm-head { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
-  .swatch { width: 14px; height: 14px; border-radius: 4px; flex: none; }
-  .risk { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
-  .risk div { display: flex; flex-direction: column; align-items: center; gap: 2px; }
-  .risk span { font-size: 11px; color: var(--muted); }
-  .risk input { width: 64px; text-align: center; }
-  .big { font-size: 38px; font-weight: 700; line-height: 1.05; letter-spacing: -0.02em; }
-  .kv { display: grid; grid-template-columns: auto 1fr; gap: 4px 14px; font-size: 14px; margin-top: 10px; }
+  .swatch { width: 16px; height: 16px; border-radius: 50%; flex: none; box-shadow: inset 1px 1px 2px rgba(0,0,0,.35); }
+  .risk { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+  .risk div { display: flex; flex-direction: column; align-items: center; gap: 3px; }
+  .risk span { font-size: 11px; font-weight: 600; color: var(--muted); letter-spacing: .03em; }
+  .risk input { width: 66px; text-align: center; padding: 8px 6px; }
+  .big { font: 900 64px/1 Gabarito, Arial, sans-serif; color: var(--board); letter-spacing: -.01em;
+         text-shadow: -1px -1px 0 rgba(247,232,210,.6), 1px 2px 0 rgba(31,20,11,.7), 3px 5px 4px rgba(31,20,11,.55), 8px 12px 18px rgba(31,20,11,.5);
+         margin: 6px 0 4px; }
+  .kv { display: grid; grid-template-columns: auto 1fr; gap: 6px 16px; font-size: 14.5px; margin-top: 14px; }
   .kv b { font-weight: 600; }
   .good { color: var(--good); } .warn { color: var(--warn); } .bad { color: var(--bad); }
-  table { width: 100%; border-collapse: collapse; font-size: 14px; font-variant-numeric: tabular-nums; }
-  th, td { padding: 7px 6px; border-bottom: 1px solid var(--line); text-align: left; }
+  table { width: 100%; border-collapse: collapse; font-size: 14.5px; font-variant-numeric: tabular-nums; }
+  th { font: 700 12px/1.2 "Instrument Sans", sans-serif; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+  th, td { padding: 10px 8px; border-bottom: 1px solid var(--line); text-align: left; }
+  tr:last-child td { border-bottom: 0; }
   td.num, th.num { text-align: right; }
-  .verdict { font-size: 18px; line-height: 1.45; margin: 4px 0 10px; }
+  .verdict { font-size: 20px; line-height: 1.45; margin: 8px 0 12px; }
   .tablewrap { overflow-x: auto; }
-  select.sel { font: inherit; color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; min-width: 0; }
+  details summary { cursor: pointer; font-weight: 600; }
+  a { color: var(--ink); }
+  @media (max-width: 640px) { .card { padding: 16px; } .big { font-size: 48px; } .steps { margin-left: 0; } }
 </style>
 </head>
 <body>
+<div class="bar"><div class="bar-in">
+  <p class="brand">PriorArt Lens.</p>
+  <div class="steps">
+    <span class="pill on" id="p1">1 · Read figure</span>
+    <span class="pill" id="p2">2 · Check numbers</span>
+    <span class="pill" id="p3">3 · Rebuild patients</span>
+    <span class="pill" id="p4">4 · Compare</span>
+  </div>
+</div></div>
 <div class="wrap">
-  <header>
-    <h1>PriorArt <span>Lens</span></h1>
-    <p class="tag">Cancer trials publish survival curves, not patient data. Photograph the curves, rebuild the patients,
+  <header class="hero">
+    <span class="plate"><span class="raised">Curves in.</span></span>
+    <span class="cut">Patients out.</span>
+    <p class="tag">Cancer trials publish survival curves, not patient data. Drop in a figure, and we rebuild the patients,
       check the result against the paper, and compare new treatments that were each tested against the same old one.</p>
-    <div class="steps">
-      <span class="pill on" id="p1">1 · Read figure</span>
-      <span class="pill" id="p2">2 · Check numbers</span>
-      <span class="pill" id="p3">3 · Rebuild patients</span>
-      <span class="pill" id="p4">4 · Compare treatments</span>
-    </div>
   </header>
 
   <!-- 1. add a trial -->
