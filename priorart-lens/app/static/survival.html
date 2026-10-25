@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>PriorArt Lens</title>
+<title>Bean</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Gabarito:wght@600;700;800;900&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -156,7 +156,7 @@
 </head>
 <body>
 <div class="bar"><div class="bar-in">
-  <p class="brand">PriorArt Lens.</p>
+  <p class="brand">Bean.</p>
   <div class="steps">
     <span class="pill on" id="p1">1 · Read figure</span>
     <span class="pill" id="p2">2 · Check numbers</span>
@@ -720,7 +720,7 @@ renderTrials();
   <circle cx="25.6" cy="28.2" r=".7" fill="#fff"/><circle cx="39.6" cy="25.2" r=".7" fill="#fff"/>
   <path d="M26 37 Q32 42 39 35" fill="none" stroke="#1d0f06" stroke-width="2.2" stroke-linecap="round"/>
   <ellipse cx="21" cy="36" rx="3" ry="1.8" fill="#e08a6a" opacity=".55"/><ellipse cx="43" cy="32" rx="3" ry="1.8" fill="#e08a6a" opacity=".55"/>
-</svg><div><b>Mr. Bean</b><span>Your fresh-brewed guide to PriorArt Lens</span></div>
+</svg><div><b>Mr. Bean</b><span>Your fresh-brewed guide to Bean</span></div>
     <button class="bean-x" id="beanClose" aria-label="Close chat">&times;</button></div>
   <div class="bean-log" id="beanLog" aria-live="polite"></div>
   <div class="bean-chips" id="beanChips"></div>
@@ -738,7 +738,7 @@ renderTrials();
   let history = [];
   try { history = JSON.parse(sessionStorage.getItem("bean_chat") || "[]"); } catch (e) { history = []; }
   const keep = () => { try { sessionStorage.setItem("bean_chat", JSON.stringify(history.slice(-30))); } catch (e) {} };
-  const HELLO = "Hi, I'm **Mr. Bean**. Ask me anything about PriorArt Lens: how to use it, how it reads figures, or what your numbers mean.";
+  const HELLO = "Hi, I'm **Mr. Bean**. Ask me anything about Bean: how to use it, how it reads figures, or what your numbers mean.";
   const CHIPS = ["How do I add a trial from a paper link?", "What does my hazard ratio mean?",
                  "How does the computer vision read the curves?", "How are patients rebuilt?",
                  "How do you compare two drugs that never met?"];
